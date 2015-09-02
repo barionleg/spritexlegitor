@@ -1,7 +1,7 @@
 var mouseDown = false;
-$(document).mousedown(function() {
+$(document).mousedown(function () {
     mouseDown = true;
-}).mouseup(function() {
+}).mouseup(function () {
     mouseDown = false;
 });
 
@@ -11,8 +11,6 @@ $(document).ready(function () {
 });
 
 
-Number.prototype.clamp = function(min, max) {
-  return Math.min(Math.max(this, min), max);
+Number.prototype.clamp = function (min, max) {
+    return Math.min(Math.max(this, min), max);
 };
-
-

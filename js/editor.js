@@ -1,12 +1,10 @@
 var editor = {
+    config: {},
     sprite: [],
     mask: [],
-    width: config.default_width,
-    height: config.default_height,
-    colors: [config.default_c0, config.default_c1, config.default_c2, config.default_c3],
-    color: config.selected_color,
     init: function () {
-        this.spriteClear();
+        this.configLoad();
+        this.spriteLoad();
         this.editorDraw();
         palette.draw('#palette');
         $("#version").html(config.version);
@@ -30,55 +28,70 @@ var editor = {
         $("#btn_about").bind('click', function () {
             $("#mod_about").fadeToggle();
         });
+        $("#btn_clear").bind('click', function () {
+            if (confirm("Are you sure you want to erase all sprite data?")) {
+                editor.spriteClear();
+                editor.editorUpdateContent();
+                editor.previewUpdate();
+            }
+        });
         $(".close_button").bind('click', function () {
             $(this).parent().fadeOut()
         });
-        $(".inner_cell").bind('mouseover',function(){
-            if(mouseDown) {
+        $(".inner_cell").bind('mouseover', function () {
+            if (mouseDown) {
                 editor.paintCell(this.id)
             }
         });
-        $(".inner_cell").bind('mousedown',function(){
+        $(".inner_cell").bind('mousedown', function () {
             editor.paintCell(this.id)
         });
-        $(".inner_cell").bind('mouseup',function(){
+        $(".inner_cell").bind('mouseup', function () {
             editor.previewUpdate();
         });
 
     },
+    configLoad:function(){
+        this.config = $.extend(true, config, storage.get('config'));
+        this.configSave();
+    },
+    configSave:function(){
+        storage.set('config', this.config);
+    },
     formatInt: function (num) {
-        return (config.hex_mode ? ("0" + Number(num).toString(16).toUpperCase()).slice(-2) : Number(num));
+        return (editor.config.hex_mode ? ("0" + Number(num).toString(16).toUpperCase()).slice(-2) : Number(num));
     },
 
     widthDec: function () { // ************** SIZES
-        if (editor.width > 1) {
-            --editor.width;
+        if (editor.config.width > 1) {
+            --editor.config.width;
             editor.sizeUpdate();
         }
     },
     widthInc: function () {
-        if (editor.width < config.max_width) {
-            ++editor.width;
+        if (editor.config.width < editor.config.max_width) {
+            ++editor.config.width;
             editor.sizeUpdate();
         }
     },
     heightDec: function () {
-        if (editor.height > 1) {
-            --editor.height;
+        if (editor.config.height > 1) {
+            --editor.config.height;
             editor.sizeUpdate();
         }
     },
     heightInc: function () {
-        if (editor.height < config.max_height) {
-            ++editor.height;
+        if (editor.config.height < editor.config.max_height) {
+            ++editor.config.height;
             editor.sizeUpdate();
         }
     },
     sizeUpdate: function () {
-        $("#size_width").html(this.formatInt(this.width));
-        $("#size_height").html(this.formatInt(this.height));
+        $("#size_width").html(this.formatInt(this.config.width));
+        $("#size_height").html(this.formatInt(this.config.height));
         this.editorUpdateSize();
         this.previewUpdate();
+        this.configSave();
     },
 
 
@@ -86,20 +99,21 @@ var editor = {
         editor.colorPick(this.id.substr(-1));
     },
     colorPick: function (cnum) {
-        this.color = cnum;
+        this.config.selected_color = cnum;
         this.colorsUpdate();
     },
     colorSet: function (cnum, cval) {
-        this.colors[cnum] = cval;
+        this.config.colors[cnum] = cval;
         this.colorsUpdate()
     },
     colorsUpdate: function () {
-        this.colors.forEach(function (cval, cnum) {
+        this.config.colors.forEach(function (cval, cnum) {
             palette.colorSet(cnum, cval);
             $("#usercolor_" + cnum + " div.cnum").html(editor.formatInt(cval));
         });
         $(".usercolor").removeClass('color_picked');
-        $("#usercolor_" + this.color).addClass('color_picked');
+        $("#usercolor_" + this.config.selected_color).addClass('color_picked');
+        this.configSave();
     },
     paletteShow: function () {
         $("#palette").slideDown();
@@ -109,10 +123,10 @@ var editor = {
         $("#palette").slideUp();
     },
     palettePick: function (cval) {
-        this.colorSet(this.color, cval);
+        this.colorSet(this.config.selected_color, cval);
     },
 
-    spriteClear: function () { // ************** SPRITES
+    spriteClear: function () {              // ************** SPRITES
         function zeros(dimensions) {
             var array = [];
             for (var i = 0; i < dimensions[0]; ++i) {
@@ -120,81 +134,109 @@ var editor = {
             }
             return array;
         }
-        this.sprite = zeros([config.max_width * 4, config.max_height]);
-        this.mask = zeros([config.max_width * 4, config.max_height]);
+        this.sprite = zeros([this.config.max_width * 4, this.config.max_height]);
+        this.mask = zeros([this.config.max_width * 4, this.config.max_height]);
+        this.spriteSave();
+    },
 
+    spriteLoad:function(){
+        if (!storage.get('sprite')) {
+            this.spriteClear();
+        } else {
+            this.sprite = $.extend(true, {}, storage.get('sprite'));
+            this.mask = $.extend(true, {}, storage.get('mask'));
+        }
+    },
+    spriteSave:function(){
+        storage.set('sprite', this.sprite);
+        storage.set('mask', this.mask);
     },
 
 
-    editorDraw: function () {
+    editorDraw: function () {            // ************** editor
         $("#editor").empty();
-        for (y = -1; y < config.max_height; y++) {
-            for (x = -1; x < config.max_width * 4; x++) {
+        for (y = -1; y < editor.config.max_height; y++) {
+            for (x = -1; x < editor.config.max_width * 4; x++) {
                 var x_byte = Math.floor(x / 4);
                 var $cell = $("<div></div>");
                 $cell.addClass('editor_cell')
                     .attr('id', 'cell_' + x + '_' + y)
-                    .addClass('row_'+y);
-                if (x==-1) {
+                    .addClass('row_' + y);
+                if (x == -1) {
                     $cell.addClass('new_line');
-                    if (y>-1) {
+                    if (y > -1) {
                         $cell.html(this.formatInt(y));
                     }
                 };
-                if (y==-1) {
-                    if (x>-1) {
+                if (y == -1) {
+                    if (x > -1) {
                         $cell.html(this.formatInt(x));
                     }
                 };
-                if (x>-1) {
-                    $cell.addClass('byte_'+x_byte);
+                if (x > -1) {
+                    $cell.addClass('byte_' + x_byte);
                 };
 
-                if (x>-1 && y>-1) {
-                    $cell.addClass('color_'+this.sprite[x][y])
-                    .addClass('inner_cell');
+                if (x > -1 && y > -1) {
+                    $cell.addClass('color_' + this.sprite[x][y])
+                        .addClass('inner_cell');
                 };
                 $("#editor").append($cell);
             }
         }
     },
-    
+
     editorUpdateSize: function () {
         $('.editor_cell').show();
-        for (x = this.width; x < config.max_width; x++) {
-            $(".byte_"+x).hide();
+        for (x = this.config.width; x < this.config.max_width; x++) {
+            $(".byte_" + x).hide();
         }
-        for (y = this.height; y < config.max_height; y++) {
-            $(".row_"+y).hide();
+        for (y = this.config.height; y < this.config.max_height; y++) {
+            $(".row_" + y).hide();
         }
     },
 
-    paintCell: function(cell_id) {
-        var ida = cell_id.split('_');
-        var x=ida[1];
-        var y=ida[2];
-        this.sprite[x][y] = this.color;
-        for (var i=0;i<4;i++) {
+    editorUpdateContent: function () {
+        for (x = 0; x < this.config.max_width*4; x++) {
+            for (y = 0; y < this.config.max_height; y++) {
+                for (var i = 0; i < 4; i++) {
+                    if (i == this.sprite[x][y]) {
+                        $("#cell_" + x +"_"+y).addClass('color_' + i)
+                    } else {
+                        $("#cell_" + x +"_"+y).removeClass('color_' + i);
+                    }
+                }
 
-            if (i==this.color) {
-                $("#"+cell_id).addClass('color_'+i)
-            } else {
-                $("#"+cell_id).removeClass('color_'+i);
             }
         }
     },
 
-    previewUpdate: function() {
+    paintCell: function (cell_id) {
+        var ida = cell_id.split('_');
+        var x = ida[1];
+        var y = ida[2];
+        this.sprite[x][y] = this.config.selected_color;
+        for (var i = 0; i < 4; i++) {
+            if (i == this.config.selected_color) {
+                $("#" + cell_id).addClass('color_' + i)
+            } else {
+                $("#" + cell_id).removeClass('color_' + i);
+            }
+        }
+    },
+
+    previewUpdate: function () {
         $("#preview").empty();
-        for (y = 0; y < this.height; y++) {
-            for (x = 0; x < this.width * 4; x++) {
+        for (y = 0; y < this.config.height; y++) {
+            for (x = 0; x < this.config.width * 4; x++) {
                 var $cell = $("<div></div>");
                 $cell.addClass('preview_cell')
-                .addClass('color_'+this.sprite[x][y]);
-                if (x==0) $cell.addClass('new_line');
+                    .addClass('color_' + this.sprite[x][y]);
+                if (x == 0) $cell.addClass('new_line');
                 $("#preview").append($cell);
             }
-        }
+        };
+        this.spriteSave();
     },
 
 };
