@@ -20,7 +20,11 @@ var editor = {
             editor.colorPick(this.id.substr(-1));
             $("#palette").slideToggle();
         });
-        $("div#palette div.palette_colorcell").bind('click', this.paletteClick);
+        $('#palette').bind('contextmenu', function (e) {
+            e.preventDefault();
+            $("#palette").slideToggle();
+        });
+        $(".palette_colorcell").bind('click', this.paletteClick);
         $("#width_dec").bind('click', this.widthDec);
         $("#width_inc").bind('click', this.widthInc);
         $("#height_dec").bind('click', this.heightDec);
@@ -70,9 +74,11 @@ var editor = {
     },
     configRead: function () {
         editor.config.hex_mode = $('#opt_hex').prop('checked');
+        editor.config.pal_mode = $('#opt_pal').prop('checked');
     },
     configShow: function () {
         $('#opt_hex').prop('checked', editor.config.hex_mode);
+        $('#opt_pal').prop('checked', editor.config.pal_mode);
     },
 
 

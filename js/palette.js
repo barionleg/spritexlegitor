@@ -1,6 +1,7 @@
 var palette = {
     draw: function (container) {
         var i, c, $ndiv;
+        $(container).empty();
         for (i = 0; i < 256; i++) {
             c = this.getRGB(i);
             $ndiv = $("<div></div>")
@@ -18,7 +19,8 @@ var palette = {
         var lm = cval & 15;
         var crlv = cr ? 50 : 0;
 
-        var phase = ((cr - 1) * 25.7 - 15) * (2 * 3.14159 / 360);
+        var phase;
+        phase = (editor.config.pal_mode)?((cr - 1) * 25.7 - 15) * (2 * 3.14159 / 360): ((cr-1)*25 - 58) * (2 * 3.14159 / 360);
 
         var y = 255 * (lm + 1) / 16;
         var i = crlv * Math.cos(phase);
