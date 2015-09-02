@@ -1,4 +1,9 @@
-
+var mouseDown = false;
+$(document).mousedown(function() {
+    mouseDown = true;
+}).mouseup(function() {
+    mouseDown = false;
+});
 
 $(document).ready(function () {
     'use strict';

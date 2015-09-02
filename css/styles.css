@@ -44,6 +44,7 @@ button:hover {
     background-color: #000;
     overflow: auto;
     display: none;
+    z-index: 200;
 }
 
 .palette_colorcell{
@@ -144,6 +145,7 @@ button:hover {
     padding: 0 10px 10px 10px;
     font-size: 12px;
     display: none;
+    z-index: 1000;
 }
 
 .popup hr {
@@ -172,4 +174,35 @@ button:hover {
     background-color: #000;
     color: #fff;
     text-align: center;
+}
+
+#editor {
+    position: absolute;
+    top:120px;
+    z-index: 100;
+}
+
+#preview {
+    position: absolute;
+    left:400px;
+    width:128px;
+    height: 96px;
+    background-color: #578;
+}
+
+.preview_cell {
+    float:left;
+    width: 4px;
+    height: 2px;
+}
+
+.editor_cell {
+    float:left;
+    width: 20px;
+    height: 10px;
+    border-right: 1px dotted #333;
+    border-bottom: 1px dotted #333;
+    text-align: center;
+    font-size: 8px;
+    cursor: default;
 }
