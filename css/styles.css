@@ -1,0 +1,9 @@
+.pallete_colorcell{
+    width: 16px;
+    height: 16px;
+    float: left;
+    
+}
+.pallete_firstinrow {
+    clear:both;
+}
