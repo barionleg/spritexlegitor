@@ -1,9 +1,92 @@
+*{ margin:0; padding:0; border:0;
+}
+
+body {
+  font-family: Roboto;   
+    margin:10px 10px;
+    background-color: #689;
+}
+
+#menubar{
+    margin-bottom: 30px;
+}
+
+button {
+    padding: 0.4em;
+    border-radius: 4px;
+    box-shadow: 2px 2px 1px #467;
+    background-color: #bcd;
+}
+
 .pallete_colorcell{
     width: 16px;
     height: 16px;
     float: left;
+    margin: 0 0 1px 1px;
     
 }
-.pallete_firstinrow {
+.pallete_firstinrow, .new_line {
     clear:both;
+}
+
+.usercolor {
+    width: 40px;
+    height: 35px;
+    float:left;
+    
+    margin-right: 5px;
+}
+
+.control_block {
+    margin-right: 20px;
+    margin-bottom: 10px;
+    float:left;
+}
+
+.control_label {
+    width:100%;
+    font-size: 10px;
+    height: 12px;
+    text-align: center;
+    background-color: #8ab;
+}
+
+.size_control {
+    width:72px;   
+}
+
+.size_control button {
+   width:20px;
+    height:18px;
+    float:left;
+    line-height: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    margin-top: 2px;
+}
+
+.size_control .size {
+    width:30px;
+    text-align: center;
+    float:left;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 20px;
+}
+
+.color_0 {
+
+}
+
+.color_1 {
+
+}
+
+.color_2 {
+
+}
+
+.color_3 {
+    
 }

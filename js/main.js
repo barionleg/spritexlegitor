@@ -2,6 +2,15 @@ $(document).ready(function () {
     'use strict';
 
     pallete.show();
+    
+    pallete.setColor(0,0);
+    pallete.setColor(1,42);
+    pallete.setColor(2,202);
+    pallete.setColor(3,140);
+
+    var mydiv = $("<div></div>").addClass('new_line').addClass('color_2').addClass('usercolor');
+    $('body').append(mydiv);
+
 });
 
 
@@ -17,7 +26,8 @@ pallete = {
             $ndiv = $("<div></div>")
                 .addClass('pallete_colorcell')
                 .css('background-color',c)
-                .attr('id','col_'+i);
+                .attr('id','col_'+i)
+                .attr('title',i);
             if (i%16==0) $ndiv.addClass('pallete_firstinrow');
             $('body').append($ndiv);
         }
@@ -43,5 +53,8 @@ pallete = {
         var bb = (Math.round(b)).clamp(0,255);
         
         return "rgb("+rr+","+gg+","+bb+")";
-    }
+    },
+    setColor:function(cnum,cval) {
+        $(".color_"+cnum).css("background-color",this.getRGB(cval));
+    },
 }
