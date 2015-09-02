@@ -5,7 +5,7 @@
 }
 
 body {
-    font-family: Roboto;
+    font-family: "Roboto", Arial, sans-serif;
     margin: 10px 10px;
     background-color: #689;
     font-size: 16px
@@ -29,11 +29,18 @@ body {
 }
 
 button {
-    padding: 0.4em;
+    padding: 5px;
     border-radius: 4px;
     box-shadow: 2px 2px 1px #467;
     background-color: #bcd;
     cursor: pointer;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+button::-moz-focus-inner {
+    border:0;
+    padding:0;
 }
 
 button:hover {
