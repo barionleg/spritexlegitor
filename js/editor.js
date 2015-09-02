@@ -7,10 +7,10 @@ var editor = {
         this.spriteLoad();
         this.editorDraw();
         palette.draw('#palette');
-        $("#version").html(config.version);
+        this.config.version = default_config.version;
+        $("#version").html(this.config.version);
         this.colorsUpdate();
         this.sizeUpdate();
-        this.bindEvents();
     },
     bindEvents: function () {
         $('.usercolor').bind('click', this.pickerClick);
@@ -28,6 +28,22 @@ var editor = {
         $("#btn_about").bind('click', function () {
             $("#mod_about").fadeToggle();
         });
+        $("#btn_options").bind('click', function () {
+            editor.configShow();
+            $("#mod_options").fadeToggle();
+        });
+        $("#btn_opt_ok").bind('click', function () {
+            editor.configRead();
+            editor.configSave();
+            editor.init();
+            $("#mod_options").fadeOut();
+        });
+        $("#btn_opt_reset").bind('click', function () {
+            if (confirm("Are you sure you want to revert default options?")) {
+                editor.configReset();
+            };
+            $("#mod_options").fadeOut();
+        });
         $("#btn_clear").bind('click', function () {
             if (confirm("Are you sure you want to erase all sprite data?")) {
                 editor.spriteClear();
@@ -38,26 +54,28 @@ var editor = {
         $(".close_button").bind('click', function () {
             $(this).parent().fadeOut()
         });
-        $(".inner_cell").bind('mouseover', function () {
-            if (mouseDown) {
-                editor.paintCell(this.id)
-            }
-        });
-        $(".inner_cell").bind('mousedown', function () {
-            editor.paintCell(this.id)
-        });
-        $(".inner_cell").bind('mouseup', function () {
-            editor.previewUpdate();
-        });
 
     },
-    configLoad:function(){
-        this.config = $.extend(true, config, storage.get('config'));
+    configLoad: function () {
+        this.config = $.extend(true, {}, default_config, storage.get('config'));
         this.configSave();
     },
-    configSave:function(){
+    configSave: function () {
         storage.set('config', this.config);
     },
+    configReset: function () {
+        storage.erase('config');
+        this.configLoad();
+        this.init();
+    },
+    configRead: function () {
+        editor.config.hex_mode = $('#opt_hex').prop('checked');
+    },
+    configShow: function () {
+        $('#opt_hex').prop('checked', editor.config.hex_mode);
+    },
+
+
     formatInt: function (num) {
         return (editor.config.hex_mode ? ("0" + Number(num).toString(16).toUpperCase()).slice(-2) : Number(num));
     },
@@ -126,7 +144,7 @@ var editor = {
         this.colorSet(this.config.selected_color, cval);
     },
 
-    spriteClear: function () {              // ************** SPRITES
+    spriteClear: function () { // ************** SPRITES
         function zeros(dimensions) {
             var array = [];
             for (var i = 0; i < dimensions[0]; ++i) {
@@ -139,7 +157,7 @@ var editor = {
         this.spriteSave();
     },
 
-    spriteLoad:function(){
+    spriteLoad: function () {
         if (!storage.get('sprite')) {
             this.spriteClear();
         } else {
@@ -147,13 +165,13 @@ var editor = {
             this.mask = $.extend(true, {}, storage.get('mask'));
         }
     },
-    spriteSave:function(){
+    spriteSave: function () {
         storage.set('sprite', this.sprite);
         storage.set('mask', this.mask);
     },
 
 
-    editorDraw: function () {            // ************** editor
+    editorDraw: function () { // ************** editor
         $("#editor").empty();
         for (y = -1; y < editor.config.max_height; y++) {
             for (x = -1; x < editor.config.max_width * 4; x++) {
@@ -183,7 +201,19 @@ var editor = {
                 };
                 $("#editor").append($cell);
             }
-        }
+        };
+        $(".inner_cell").bind('mouseover', function () {
+            if (mouseDown) {
+                editor.paintCell(this.id)
+            }
+        });
+        $(".inner_cell").bind('mousedown', function () {
+            editor.paintCell(this.id)
+        });
+        $(".inner_cell").bind('mouseup', function () {
+            editor.previewUpdate();
+        });
+
     },
 
     editorUpdateSize: function () {
@@ -197,13 +227,13 @@ var editor = {
     },
 
     editorUpdateContent: function () {
-        for (x = 0; x < this.config.max_width*4; x++) {
+        for (x = 0; x < this.config.max_width * 4; x++) {
             for (y = 0; y < this.config.max_height; y++) {
                 for (var i = 0; i < 4; i++) {
                     if (i == this.sprite[x][y]) {
-                        $("#cell_" + x +"_"+y).addClass('color_' + i)
+                        $("#cell_" + x + "_" + y).addClass('color_' + i)
                     } else {
-                        $("#cell_" + x +"_"+y).removeClass('color_' + i);
+                        $("#cell_" + x + "_" + y).removeClass('color_' + i);
                     }
                 }
 

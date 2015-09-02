@@ -1,9 +1,12 @@
-*{ margin:0; padding:0; border:0;
+* {
+    margin: 0;
+    padding: 0;
+    border: 0;
 }
 
 body {
-  font-family: Roboto;   
-    margin:10px 10px;
+    font-family: Roboto;
+    margin: 10px 10px;
     background-color: #689;
     font-size: 16px
 }
@@ -17,8 +20,12 @@ body {
     user-select: none;
 }
 
-#menubar{
+#menubar {
     margin-bottom: 30px;
+}
+
+#menubar button {
+    margin-right: 3px;
 }
 
 button {
@@ -34,34 +41,35 @@ button:hover {
 }
 
 .right_sep {
-    margin-right: 20px;
+    margin-right: 20px!important;
 }
 
 #palette {
     padding: 3px;
-    top:105px;
-    position:absolute;
+    top: 105px;
+    position: absolute;
     background-color: #000;
     overflow: auto;
     display: none;
     z-index: 200;
 }
 
-.palette_colorcell{
+.palette_colorcell {
     width: 16px;
     height: 16px;
     float: left;
     margin: 0 0 1px 1px;
-    
 }
-.palette_firstinrow, .new_line {
-    clear:both;
+
+.palette_firstinrow,
+.new_line {
+    clear: both;
 }
 
 .usercolor {
     width: 40px;
     height: 35px;
-    float:left;
+    float: left;
     cursor: pointer;
     margin-right: 5px;
 }
@@ -69,11 +77,11 @@ button:hover {
 .control_block {
     margin-right: 20px;
     margin-bottom: 10px;
-    float:left;
+    float: left;
 }
 
 .control_label {
-    width:100%;
+    width: 100%;
     font-size: 10px;
     height: 12px;
     text-align: center;
@@ -86,7 +94,7 @@ button:hover {
     font-size: 12px;
     line-height: 23px;
     font-weight: 700;
-    text-shadow: 0 0 1px #fff,0 0 1px #fff,0 0 1px #fff,0 0 1px #fff;
+    text-shadow: 0 0 1px #fff, 0 0 1px #fff, 0 0 1px #fff, 0 0 1px #fff;
 }
 
 .color_picked .control_label {
@@ -94,13 +102,13 @@ button:hover {
 }
 
 .size_control {
-    width:72px;   
+    width: 72px;
 }
 
 .size_control button {
-   width:20px;
-    height:18px;
-    float:left;
+    width: 20px;
+    height: 18px;
+    float: left;
     line-height: 8px;
     font-size: 14px;
     font-weight: 700;
@@ -109,36 +117,27 @@ button:hover {
 }
 
 .size_control .size {
-    width:30px;
+    width: 30px;
     text-align: center;
-    float:left;
+    float: left;
     font-size: 12px;
     font-weight: 700;
     line-height: 20px;
 }
 
-.color_0 {
+.color_0 {}
 
-}
+.color_1 {}
 
-.color_1 {
+.color_2 {}
 
-}
-
-.color_2 {
-
-}
-
-.color_3 {
-    
-}
-
+.color_3 {}
 
 .popup {
     position: absolute;
     background-color: #eff;
-    top:30px;
-    left:30%;
+    top: 30px;
+    left: 30%;
     right: 30%;
     border-radius: 10px;
     box-shadow: 1px 1px 8px #000;
@@ -153,8 +152,8 @@ button:hover {
     height: 1px;
     background-color: #000;
     margin-bottom: 10px;
-    
 }
+
 .popup_title {
     font-weight: 700;
     margin-bottom: 0px;
@@ -178,26 +177,26 @@ button:hover {
 
 #editor {
     position: absolute;
-    top:120px;
+    top: 120px;
     z-index: 100;
 }
 
 #preview {
     position: absolute;
-    left:400px;
-    width:128px;
+    left: 400px;
+    width: 128px;
     height: 96px;
     background-color: #578;
 }
 
 .preview_cell {
-    float:left;
+    float: left;
     width: 4px;
     height: 2px;
 }
 
 .editor_cell {
-    float:left;
+    float: left;
     width: 20px;
     height: 10px;
     border-right: 1px dotted #333;
@@ -205,4 +204,15 @@ button:hover {
     text-align: center;
     font-size: 8px;
     cursor: default;
+}
+
+.btn_win {
+    margin-left: 8px;
+    float: right;
+}
+
+.opt_check {
+    vertical-align: bottom;
+    margin-bottom: 1px;
+    margin-right: 5px;
 }

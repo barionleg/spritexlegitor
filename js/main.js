@@ -8,6 +8,7 @@ $(document).mousedown(function () {
 $(document).ready(function () {
     'use strict';
     editor.init();
+    editor.bindEvents();
 });
 
 
