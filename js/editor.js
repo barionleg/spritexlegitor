@@ -55,6 +55,13 @@ var editor = {
                 editor.previewUpdate();
             }
         });
+        $("#btn_crop").bind('click', function () {
+            if (confirm("Are you sure you want to erase all invisible area?")) {
+                editor.spriteCrop();
+                editor.editorUpdateContent();
+                editor.previewUpdate();
+            }
+        });
         $(".close_button").bind('click', function () {
             $(this).parent().fadeOut()
         });
@@ -163,6 +170,23 @@ var editor = {
         this.spriteSave();
     },
 
+    spriteCrop: function () {
+        var x,y;
+        for (y = this.config.height; y < this.config.max_height; y++) {
+            for (x = 0; x < this.config.max_width*4; x++) {
+                this.sprite[x][y]=0;
+                this.mask[x][y]=0;
+            }
+        }
+        for (x = this.config.width*4; x < this.config.max_width*4; x++) {
+            for (y = 0; y < this.config.max_height; y++) {
+                this.sprite[x][y]=0;
+                this.mask[x][y]=0;
+            }
+        }
+        this.spriteSave();
+    },
+
     spriteLoad: function () {
         if (!storage.get('sprite')) {
             this.spriteClear();
@@ -178,6 +202,7 @@ var editor = {
 
 
     editorDraw: function () { // ************** editor
+        var x,y;
         $("#editor").empty();
         for (y = -1; y < editor.config.max_height; y++) {
             for (x = -1; x < editor.config.max_width * 4; x++) {
@@ -223,6 +248,7 @@ var editor = {
     },
 
     editorUpdateSize: function () {
+        var x,y;
         $('.editor_cell').show();
         for (x = this.config.width; x < this.config.max_width; x++) {
             $(".byte_" + x).hide();
@@ -233,6 +259,7 @@ var editor = {
     },
 
     editorUpdateContent: function () {
+        var x,y;
         for (x = 0; x < this.config.max_width * 4; x++) {
             for (y = 0; y < this.config.max_height; y++) {
                 for (var i = 0; i < 4; i++) {
@@ -262,6 +289,7 @@ var editor = {
     },
 
     previewUpdate: function () {
+        var x,y;
         $("#preview").empty();
         for (y = 0; y < this.config.height; y++) {
             for (x = 0; x < this.config.width * 4; x++) {
@@ -274,5 +302,4 @@ var editor = {
         };
         this.spriteSave();
     },
-
 };
