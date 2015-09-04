@@ -30,7 +30,7 @@ editor.spriteFx = {
                 cs = editor.sprite[(editor.config.width * 4) - 1][y];
                 cm = editor.mask[(editor.config.width * 4) - 1][y];
             };
-            for (x = (editor.config.width * 4); x > 0; x--) {
+            for (x = (editor.config.width * 4)-1; x > 0; x--) {
                 editor.sprite[x][y] = editor.sprite[x - 1][y];
                 editor.mask[x][y] = editor.mask[x - 1][y];
             }
@@ -73,7 +73,7 @@ editor.spriteFx = {
                 cs = editor.sprite[x][editor.config.height - 1];
                 cm = editor.mask[x][editor.config.height - 1];
             };
-            for (y = editor.config.height; y > 0; y--) {
+            for (y = editor.config.height-1; y > 0; y--) {
                 editor.sprite[x][y] = editor.sprite[x][y - 1];
                 editor.mask[x][y] = editor.mask[x][y - 1];
             }
