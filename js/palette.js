@@ -12,6 +12,12 @@ var palette = {
             if (i % 16 == 0) $ndiv.addClass('palette_firstinrow');
             $(container).append($ndiv);
         }
+        $('#palette').bind('contextmenu', function (e) {
+            e.preventDefault();
+            $("#palette").slideToggle();
+        });
+        $(".palette_colorcell").bind('click', editor.paletteClick);
+
     },
     getRGB: function (cval) {
 

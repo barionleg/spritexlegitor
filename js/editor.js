@@ -2,15 +2,32 @@ var editor = {
     config: {},
     sprite: [],
     mask: [],
+    runOnce: true,
     init: function () {
         this.configLoad();
         this.spriteLoad();
-        this.editorDraw();
+        if (this.runOnce) {
+            this.editorDraw();
+            this.previewDraw();
+        }
         palette.draw('#palette');
         this.config.version = default_config.version;
         $("#version").html(this.config.version);
         this.colorsUpdate();
         this.sizeUpdate();
+        $('#preview').css('top', editor.config.previewY);
+        $('#preview').css('left', editor.config.previewX);
+        $('#preview').css('width', Number(editor.config.max_width) * (4 * editor.config.preview_cell_w));
+        $('#preview').css('height', Number(editor.config.max_height) * editor.config.preview_cell_h);
+        $('.preview_cell').css('width', editor.config.preview_cell_w)
+            .css('height', editor.config.preview_cell_h);
+        $('.editor_cell').css('width', editor.config.editor_cell_w)
+            .css('height', editor.config.editor_cell_h);
+        editor.configShow("menu_fx");
+        if (this.runOnce) {
+            this.bindEvents();
+        }
+        this.runOnce = false;
     },
     bindEvents: function () {
         $('.usercolor').bind('click', this.pickerClick);
@@ -20,46 +37,47 @@ var editor = {
             editor.colorPick(this.id.substr(-1));
             $("#palette").slideToggle();
         });
-        $('#palette').bind('contextmenu', function (e) {
-            e.preventDefault();
-            $("#palette").slideToggle();
-        });
-        $(".palette_colorcell").bind('click', this.paletteClick);
-        $("#width_dec").bind('click', this.widthDec);
-        $("#width_inc").bind('click', this.widthInc);
-        $("#height_dec").bind('click', this.heightDec);
-        $("#height_inc").bind('click', this.heightInc);
-        $("#btn_about").bind('click', function () {
-            $("#mod_about").fadeToggle();
-        });
-        $("#btn_options").bind('click', function () {
-            editor.configShow();
-            $("#mod_options").fadeToggle();
-        });
-        $("#btn_opt_ok").bind('click', function () {
-            editor.configRead();
+
+        editor.buttons.bind();
+
+        $("#opt_wrap").bind('change', function () {
+            editor.configRead("menu_fx");
             editor.configSave();
-            editor.init();
+            // editor.init();
             $("#mod_options").fadeOut();
         });
-        $("#btn_opt_reset").bind('click', function () {
-            if (confirm("Are you sure you want to revert default options?")) {
-                editor.configReset();
-            };
-            $("#mod_options").fadeOut();
-        });
-        $("#btn_clear").bind('click', function () {
-            if (confirm("Are you sure you want to erase all sprite data?")) {
-                editor.spriteClear();
-                editor.editorUpdateContent();
-                editor.previewUpdate();
-            }
-        });
+
         $(".close_button").bind('click', function () {
             $(this).parent().fadeOut()
         });
 
+        var $draggable = $('#preview').draggabilly({
+            containment: 'html'
+        });
+        $draggable.on('dragEnd', function () {
+            var prevbox = $(this).data('draggabilly');
+            editor.config.previewX = prevbox.position.x;
+            editor.config.previewY = prevbox.position.y;
+            console.log(prevbox.position.x + " " + prevbox.position.y);
+            editor.configSave();
+        });
+
+        document.addEventListener('keydown', function (event) {
+            switch (event.keyCode) {
+            case 49:
+            case 50:
+            case 51:
+                editor.colorPick(event.keyCode - 48);
+                break;
+            case 52:
+                editor.colorPick(0);
+                break;
+            default:
+                //alert(event.keyCode);
+            }
+        });
     },
+
     configLoad: function () {
         this.config = $.extend(true, {}, default_config, storage.get('config'));
         this.configSave();
@@ -72,15 +90,18 @@ var editor = {
         this.configLoad();
         this.init();
     },
-    configRead: function () {
-        editor.config.hex_mode = $('#opt_hex').prop('checked');
-        editor.config.pal_mode = $('#opt_pal').prop('checked');
+    configRead: function (cont) {
+        $('#' + cont + ' input:checkbox').each(function (idx, chkbox) {
+            configname = chkbox.id.substr(4);
+            editor.config[configname] = $(chkbox).prop('checked');
+        });
     },
-    configShow: function () {
-        $('#opt_hex').prop('checked', editor.config.hex_mode);
-        $('#opt_pal').prop('checked', editor.config.pal_mode);
+    configShow: function (cont) {
+        $('#' + cont + ' input:checkbox').each(function (idx, chkbox) {
+            configname = chkbox.id.substr(4);
+            $(chkbox).prop('checked', editor.config[configname]);
+        });
     },
-
 
     formatInt: function (num) {
         return (editor.config.hex_mode ? ("0" + Number(num).toString(16).toUpperCase()).slice(-2) : Number(num));
@@ -162,7 +183,22 @@ var editor = {
         this.mask = zeros([this.config.max_width * 4, this.config.max_height]);
         this.spriteSave();
     },
-
+    spriteCrop: function () {
+        var x, y;
+        for (y = this.config.height; y < this.config.max_height; y++) {
+            for (x = 0; x < this.config.max_width * 4; x++) {
+                this.sprite[x][y] = 0;
+                this.mask[x][y] = 0;
+            }
+        }
+        for (x = this.config.width * 4; x < this.config.max_width * 4; x++) {
+            for (y = 0; y < this.config.max_height; y++) {
+                this.sprite[x][y] = 0;
+                this.mask[x][y] = 0;
+            }
+        }
+        this.spriteSave();
+    },
     spriteLoad: function () {
         if (!storage.get('sprite')) {
             this.spriteClear();
@@ -176,8 +212,8 @@ var editor = {
         storage.set('mask', this.mask);
     },
 
-
     editorDraw: function () { // ************** editor
+        var x, y;
         $("#editor").empty();
         for (y = -1; y < editor.config.max_height; y++) {
             for (x = -1; x < editor.config.max_width * 4; x++) {
@@ -202,6 +238,12 @@ var editor = {
                 };
 
                 if (x > -1 && y > -1) {
+                    if (this.sprite[x] === undefined) {
+                        this.sprite[x] = [];
+                    }
+                    if (this.sprite[x][y] === undefined) {
+                        this.sprite[x][y] = 0;
+                    }
                     $cell.addClass('color_' + this.sprite[x][y])
                         .addClass('inner_cell');
                 };
@@ -209,20 +251,30 @@ var editor = {
             }
         };
         $(".inner_cell").bind('mouseover', function () {
-            if (mouseDown) {
-                editor.paintCell(this.id)
-            }
-        });
-        $(".inner_cell").bind('mousedown', function () {
-            editor.paintCell(this.id)
-        });
-        $(".inner_cell").bind('mouseup', function () {
-            editor.previewUpdate();
-        });
+                if (mouseDown == 1 && !$("#preview").hasClass('is-dragging')) {
+                    editor.cellPaint(this.id, editor.config.selected_color)
+                }
+                if (mouseDown == 3 && !$("#preview").hasClass('is-dragging')) {
+                    editor.cellClear(this.id)
+                }
+            })
+            .bind('mousedown', function (e) {
+                e = e || window.event;
+                if (e.which == 1) editor.cellPaint(this.id, editor.config.selected_color);
+                if (e.which == 3) editor.cellClear(this.id);
+
+            })
+            .bind('mouseup', function () {
+                editor.previewUpdate();
+            })
+            .bind('contextmenu', function (e) {
+                e.preventDefault();
+            });
 
     },
 
     editorUpdateSize: function () {
+        var x, y;
         $('.editor_cell').show();
         for (x = this.config.width; x < this.config.max_width; x++) {
             $(".byte_" + x).hide();
@@ -233,43 +285,78 @@ var editor = {
     },
 
     editorUpdateContent: function () {
+        var x, y;
         for (x = 0; x < this.config.max_width * 4; x++) {
             for (y = 0; y < this.config.max_height; y++) {
-                for (var i = 0; i < 4; i++) {
-                    if (i == this.sprite[x][y]) {
-                        $("#cell_" + x + "_" + y).addClass('color_' + i)
-                    } else {
-                        $("#cell_" + x + "_" + y).removeClass('color_' + i);
-                    }
-                }
-
+                this.cellSet("#cell_" + x + "_" + y, this.sprite[x][y]);
             }
         }
     },
 
-    paintCell: function (cell_id) {
+    cellSet: function (cname, cnum) {
+        for (var i = 0; i < 4; i++) {
+            if (i == cnum) {
+                $(cname).addClass('color_' + i)
+            } else {
+                $(cname).removeClass('color_' + i);
+            }
+        }
+    },
+
+    cellPaint: function (cell_id, color) {
         var ida = cell_id.split('_');
         var x = ida[1];
         var y = ida[2];
-        this.sprite[x][y] = this.config.selected_color;
-        for (var i = 0; i < 4; i++) {
-            if (i == this.config.selected_color) {
-                $("#" + cell_id).addClass('color_' + i)
-            } else {
-                $("#" + cell_id).removeClass('color_' + i);
-            }
+        this.sprite[x][y] = color;
+        this.cellSet("#" + cell_id, color);
+    },
+
+    cellPaintXY: function (x, y, color) {
+        this.sprite[x][y] = color;
+        this.cellSet("#cell_" + x + "_" + y, color);
+    },
+
+
+
+    cellClear: function (cell_id) {
+        var ida = cell_id.split('_');
+        var x = ida[1];
+        var y = ida[2];
+        if (editor.config.mask_mode) {
+            this.mask[x][y] = 1;
+        } else {
+            this.sprite[x][y] = 0;
+            this.cellSet("#" + cell_id, 0);
         }
     },
 
-    previewUpdate: function () {
+    previewDraw: function () {
+        var x, y;
         $("#preview").empty();
-        for (y = 0; y < this.config.height; y++) {
-            for (x = 0; x < this.config.width * 4; x++) {
+        for (y = 0; y < this.config.max_height; y++) {
+            for (x = 0; x < this.config.max_width * 4; x++) {
                 var $cell = $("<div></div>");
-                $cell.addClass('preview_cell')
-                    .addClass('color_' + this.sprite[x][y]);
+                $cell.addClass('preview_cell').attr('id', 'prev_' + x + '_' + y);
+                if ((x < this.config.width * 4) && y < this.config.height) {
+                    $cell.addClass('color_' + this.sprite[x][y]);
+                }
                 if (x == 0) $cell.addClass('new_line');
                 $("#preview").append($cell);
+            }
+        };
+        this.spriteSave();
+    },
+
+    previewUpdate: function () {
+        var x, y, col;
+        for (y = 0; y < this.config.max_height; y++) {
+            for (x = 0; x < this.config.max_width * 4; x++) {
+                var $cell = $('#prev_' + x + '_' + y);
+                col = 'empty';
+                if ((x < this.config.width * 4) && y < this.config.height) {
+                    col = this.sprite[x][y];
+                }
+                editor.cellSet($cell, col);
             }
         };
         this.spriteSave();
