@@ -18,6 +18,20 @@ editor.buttons = {
         $("#mod_about").fadeToggle();
     },
 
+    data:  function () {
+        if (!$("#mod_data").is(":visible")) {
+            editor.configShow("opt_raw");
+            editor.dataShow();
+        }
+        $("#mod_data").fadeToggle();
+    },
+
+    data_load: function() {
+        if (editor.dataImport()) {
+            editor.init();
+        }
+    },
+
     options: function () {
         editor.configShow("mod_options");
         $("#mod_options").fadeToggle();
@@ -66,5 +80,10 @@ editor.buttons = {
     fx_shd: editor.spriteFx.shd,
     fx_flipv: editor.spriteFx.flipV,
     fx_fliph: editor.spriteFx.flipH,
+
+    mask_clear: editor.maskClear,
+    mask_all: editor.maskAll,
+    mask_auto: editor.maskAuto,
+    mask_outline: editor.maskOutline,
 
 };
