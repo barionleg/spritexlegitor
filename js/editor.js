@@ -7,109 +7,77 @@ var editor = {
     init: function () {
         this.configLoad();
         this.spriteLoad();
-        if (this.runOnce) {
 
+        if (this.runOnce) {
             this.config.version = default_config.version;
             $("#version").html(this.config.version);
             this.editorDraw();
             this.previewDraw();
         }
-        $('#preview').css('top', editor.config.previewY);
-        $('#preview').css('left', editor.config.previewX);
-        $('#preview').css('width', Number(editor.config.max_width) * 4 * editor.config.preview_cell_size * editor.config.pixel_width);
-        $('#preview').css('height', Number(editor.config.max_height) * editor.config.preview_cell_size);
-        palette.draw('#palette');
-        this.colorsUpdate();
-        this.sizeUpdate();
-        $('.preview_cell').css('width', editor.config.preview_cell_size * editor.config.pixel_width)
-            .css('height', editor.config.preview_cell_size);
-        $('.editor_cell').css('width', editor.config.editor_cell_size * editor.config.pixel_width)
-            .css('height', editor.config.editor_cell_size);
+
+        this.previewSizeUpdate();
+        this.sizesUpdate();
         editor.configShow("menu_fx");
         editor.configShow("menu_mask");
         $("#menu_mask").toggleClass('invisible', !this.config.mask_mode);
         $("#export_raw_mask").toggleClass('invisible', !this.config.mask_mode);
+        palette.draw('#palette');
+        this.colorsUpdate();
         editor.editorUpdateContent();
+
         if (this.runOnce) {
             this.bindEvents();
-            setTimeout(function () {
-                var $draggable = $('#preview').draggabilly({
-                    containment: 'html'
-                });
-                var $draggables = $('.popup').draggabilly({
-                    containment: 'html',
-                    handle: '.popup_title'
-                });
-                $draggable.on('dragEnd', function () {
-                    var prevbox = $(this).data('draggabilly');
-                    editor.config.previewX = prevbox.position.x;
-                    editor.config.previewY = prevbox.position.y;
-                    console.log(prevbox.position.x + " " + prevbox.position.y);
-                    editor.configSave();
-                });
-            }, 500);
-            $(".data_textarea").focus(function () {
-                var $this = $(this);
-                $this.select();
-
-                $this.mouseup(function () {
-                    $this.unbind("mouseup");
-                    return false;
-                });
-            });
+            this.runOnce = false;
         }
-        this.runOnce = false;
     },
-    bindEvents: function () {
-        $('.usercolor').bind('click', this.pickerClick);
-        $('.usercolor').bind('dblclick', this.paletteShow);
-        $('.usercolor').bind('contextmenu', function (e) {
-            e.preventDefault();
-            editor.colorPick(this.id.substr(-1));
-            $("#palette").slideToggle();
-        });
 
-        editor.buttons.bind();
+    // *************************************************************************************************
+    // ******************************************************************************* GUI / MENU
+    // *************************************************************************************************
 
-        $("#opt_wrap").bind('change', function () {
-            editor.configRead("menu_fx");
-            editor.configSave();
-
-        });
-        $("#opt_mask_vis").bind('change', function () {
-            editor.configRead("menu_mask");
-            editor.configSave();
-            editor.init();
-
-        });
-
-        $(".close_button").bind('click', function () {
-            $(this).parent().fadeOut()
-        });
-
-        $("#opt_raw input.opt_check").change(function () {
-            //console.log('change');
-            editor.configRead("opt_raw");
-            editor.configSave();
-            editor.dataShowRaw();
-        });
-
-
-        document.addEventListener('keydown', function (event) {
-            switch (event.keyCode) {
-            case 49:
-            case 50:
-            case 51:
-                editor.colorPick(event.keyCode - 48);
-                break;
-            case 52:
-                editor.colorPick(0);
-                break;
-            default:
-                //alert(event.keyCode);
-            }
-        });
+    formatInt: function (num) {
+        return (editor.config.hex_mode ? ("0" + Number(num).toString(16).toUpperCase()).slice(-2) : Number(num));
     },
+
+    widthDec: function () { // ************** SIZES
+        if (editor.config.width > 1) {
+            editor.config.width -= Number(editor.config.export_mode);
+            editor.sizesUpdate();
+        }
+    },
+    widthInc: function () {
+        if (editor.config.width < editor.config.max_width) {
+            editor.config.width += Number(editor.config.export_mode);
+            editor.sizesUpdate();
+        }
+    },
+    heightDec: function () {
+        if (editor.config.height > 1) {
+            --editor.config.height;
+            editor.sizesUpdate();
+        }
+    },
+    heightInc: function () {
+        if (editor.config.height < editor.config.max_height) {
+            ++editor.config.height;
+            editor.sizesUpdate();
+        }
+    },
+    sizesUpdate: function () {
+        if (editor.config.width % editor.config.export_mode != 0) {
+            editor.config.width = (Math.floor(editor.config.width / editor.config.export_mode) + 1) * Number(editor.config.export_mode);
+        };
+        $("#size_width").html(this.formatInt(this.config.width));
+        $("#size_height").html(this.formatInt(this.config.height));
+        this.editorUpdateSize();
+        this.previewUpdate();
+        this.previewSizeUpdate();
+        this.configSave();
+    },
+
+    // *************************************************************************************************
+    // ******************************************************************************* CONFIG
+    // *************************************************************************************************
 
     configLoad: function () {
         this.config = $.extend(true, {}, default_config, storage.get('config'));
@@ -141,7 +109,6 @@ var editor = {
             editor.config[configname] = $(selname).val();
         });
 
-
     },
     configShow: function (cont) {
         $('#' + cont + ' input:checkbox').each(function (idx, chkbox) {
@@ -160,46 +127,11 @@ var editor = {
             configname = selname.id.substr(4);
             $(selname).val(editor.config[configname]);
         });
-
-
     },
 
-    formatInt: function (num) {
-        return (editor.config.hex_mode ? ("0" + Number(num).toString(16).toUpperCase()).slice(-2) : Number(num));
-    },
-
-    widthDec: function () { // ************** SIZES
-        if (editor.config.width > 1) {
-            --editor.config.width;
-            editor.sizeUpdate();
-        }
-    },
-    widthInc: function () {
-        if (editor.config.width < editor.config.max_width) {
-            ++editor.config.width;
-            editor.sizeUpdate();
-        }
-    },
-    heightDec: function () {
-        if (editor.config.height > 1) {
-            --editor.config.height;
-            editor.sizeUpdate();
-        }
-    },
-    heightInc: function () {
-        if (editor.config.height < editor.config.max_height) {
-            ++editor.config.height;
-            editor.sizeUpdate();
-        }
-    },
-    sizeUpdate: function () {
-        $("#size_width").html(this.formatInt(this.config.width));
-        $("#size_height").html(this.formatInt(this.config.height));
-        this.editorUpdateSize();
-        this.previewUpdate();
-        this.configSave();
-    },
-
+    // *************************************************************************************************
+    // ******************************************************************************* COLORS
+    // *************************************************************************************************
 
     pickerClick: function () { // ************** COLORS
         editor.colorPick(this.id.substr(-1));
@@ -232,7 +164,11 @@ var editor = {
         this.colorSet(this.config.selected_color, cval);
     },
 
-    spriteClear: function () { // ************** SPRITES
+    // *************************************************************************************************
+    // ******************************************************************************* SPRITES
+    // *************************************************************************************************
+
+    spriteClear: function () {
         function zeros(dimensions) {
             var array = [];
             for (var i = 0; i < dimensions[0]; ++i) {
@@ -240,19 +176,19 @@ var editor = {
             }
             return array;
         }
-        this.sprite = zeros([this.config.max_width * 4, this.config.max_height]);
-        this.mask = zeros([this.config.max_width * 4, this.config.max_height]);
+        this.sprite = zeros([this.config.max_width, this.config.max_height]);
+        this.mask = zeros([this.config.max_width, this.config.max_height]);
         this.spriteSave();
     },
     spriteCrop: function () {
         var x, y;
         for (y = this.config.height; y < this.config.max_height; y++) {
-            for (x = 0; x < this.config.max_width * 4; x++) {
+            for (x = 0; x < this.config.max_width; x++) {
                 this.sprite[x][y] = 0;
                 this.mask[x][y] = 0;
             }
         }
-        for (x = this.config.width * 4; x < this.config.max_width * 4; x++) {
+        for (x = this.config.width; x < this.config.max_width; x++) {
             for (y = 0; y < this.config.max_height; y++) {
                 this.sprite[x][y] = 0;
                 this.mask[x][y] = 0;
@@ -273,12 +209,15 @@ var editor = {
         storage.set('mask', this.mask);
     },
 
-    editorDraw: function () { // ************** editor
+    // *************************************************************************************************
+    // ******************************************************************************* EDITOR
+    // *************************************************************************************************
+
+    editorDraw: function () {
         var x, y;
         $("#editor").empty();
         for (y = -1; y < editor.config.max_height; y++) {
-            for (x = -1; x < editor.config.max_width * 4; x++) {
-                var x_byte = Math.floor(x / 4);
+            for (x = -1; x < editor.config.max_width; x++) {
                 var $cell = $("<div></div>");
                 $cell.addClass('editor_cell')
                     .attr('id', 'cell_' + x + '_' + y)
@@ -288,16 +227,14 @@ var editor = {
                     if (y > -1) {
                         $cell.html(this.formatInt(y));
                     }
+                } else {
+                    $cell.addClass("col_" + x);
                 };
                 if (y == -1) {
                     if (x > -1) {
                         $cell.html(this.formatInt(x));
                     }
                 };
-                if (x > -1) {
-                    $cell.addClass('byte_' + x_byte);
-                };
-
                 if (x > -1 && y > -1) {
                     if (this.sprite[x] === undefined) {
                         this.sprite[x] = [];
@@ -314,39 +251,16 @@ var editor = {
                 $("#editor").append($cell);
             }
         };
-        $(".inner_cell").bind('mouseover', function () {
-                if (mouseDown == 1 && !$("#preview").hasClass('is-dragging')) {
-                    editor.cellPaint(this.id, editor.config.selected_color)
-                }
-                if (mouseDown == 3 && !$("#preview").hasClass('is-dragging')) {
-                    editor.cellClear(this.id);
-                }
-            })
-            .bind('mousedown', function (e) {
-                e = e || window.event;
-                if (e.which == 1) editor.cellPaint(this.id, editor.config.selected_color);
-                if (e.which == 3) {
-                    editor.maskSelect(this.id);
-                    editor.cellClear(this.id);
-                }
-            })
-            .bind('mouseup', function () {
-                editor.previewUpdate();
-            })
-            .bind('contextmenu', function (e) {
-                e.preventDefault();
-            });
-
     },
 
     editorUpdateSize: function () {
         var x, y;
-        $('#editor').css('width', ((Number(editor.config.width) * 4) + 1) * ((editor.config.editor_cell_size * editor.config.pixel_width) + 1));
+        $('#editor').css('width', (Number(editor.config.width) + 1) * ((editor.config.editor_cell_size * editor.config.pixel_width) + 1));
         $('#editor').css('height', (Number(editor.config.height) + 1) * (Number(editor.config.editor_cell_size) + 1));
 
         $('.editor_cell').show().css('font-size', (editor.config.editor_cell_size * 0.8) + "px");
         for (x = this.config.width; x < this.config.max_width; x++) {
-            $(".byte_" + x).hide();
+            $(".col_" + x).hide();
         }
         for (y = this.config.height; y < this.config.max_height; y++) {
             $(".row_" + y).hide();
@@ -355,7 +269,7 @@ var editor = {
 
     editorUpdateContent: function () {
         var x, y;
-        for (x = 0; x < this.config.max_width * 4; x++) {
+        for (x = 0; x < this.config.max_width; x++) {
             for (y = 0; y < this.config.max_height; y++) {
                 this.cellSet("#cell_" + x + "_" + y, this.sprite[x][y]);
                 this.cellMask("#cell_" + x + "_" + y, this.mask[x][y]);
@@ -372,6 +286,7 @@ var editor = {
             }
         }
     },
+
     cellMask: function (cname, mask) {
         $(cname).removeClass('mask_0 mask_1');
         if (editor.config.mask_mode && editor.config.mask_vis) {
@@ -392,8 +307,6 @@ var editor = {
         this.cellSet("#cell_" + x + "_" + y, color);
     },
 
-
-
     cellClear: function (cell_id) {
         var ida = cell_id.split('_');
         var x = ida[1];
@@ -411,7 +324,7 @@ var editor = {
         var cx, cy;
         var sx = x - (x > 0 ? 1 : 0);
         var sy = y - (y > 0 ? 1 : 0);
-        var ex = x + (x < ((editor.config.width * 4) - 1) ? 1 : 0);
+        var ex = x + (x < (editor.config.width - 1) ? 1 : 0);
         var ey = y + (y < (editor.config.height - 1) ? 1 : 0);
         for (cx = sx; cx <= ex; cx++) {
             for (cy = sy; cy <= ey; cy++) {
@@ -421,14 +334,18 @@ var editor = {
         return false;
     },
 
+    // *************************************************************************************************
+    // ******************************************************************************* PREVIEW
+    // *************************************************************************************************
+
     previewDraw: function () {
         var x, y;
         $("#preview").empty();
         for (y = 0; y < this.config.max_height; y++) {
-            for (x = 0; x < this.config.max_width * 4; x++) {
+            for (x = 0; x < this.config.max_width; x++) {
                 var $cell = $("<div></div>");
                 $cell.addClass('preview_cell').attr('id', 'prev_' + x + '_' + y);
-                if ((x < this.config.width * 4) && y < this.config.height) {
+                if (x < this.config.width && y < this.config.height) {
                     $cell.addClass('color_' + this.sprite[x][y]);
                 }
                 if (x == 0 && y == 0) $cell.addClass('first_cell');
@@ -441,12 +358,14 @@ var editor = {
 
     previewUpdate: function () {
         var x, y, col;
-        for (y = 0; y < this.config.max_height; y++) {
-            for (x = 0; x < this.config.max_width * 4; x++) {
+        $(".preview_cell").hide();
+        for (y = 0; y < this.config.height; y++) {
+            for (x = 0; x < this.config.width; x++) {
                 var $cell = $('#prev_' + x + '_' + y);
                 col = 'empty';
-                if ((x < this.config.width * 4) && y < this.config.height) {
+                if ((x < this.config.width) && y < this.config.height) {
                     col = this.sprite[x][y];
+                    $cell.show();
                 }
                 editor.cellSet($cell, col);
                 editor.cellMask($cell, this.mask[x][y]);
@@ -454,19 +373,24 @@ var editor = {
         };
         this.spriteSave();
     },
+    previewSizeUpdate: function () {
+        $('#preview').css('top', editor.config.previewY);
+        $('#preview').css('left', editor.config.previewX);
+        $('#preview').css('width', Number(editor.config.width) * editor.config.preview_cell_size * editor.config.pixel_width);
+        $('#preview').css('height', Number(editor.config.height) * editor.config.preview_cell_size);
+        $('.preview_cell').css('width', editor.config.preview_cell_size * editor.config.pixel_width)
+            .css('height', editor.config.preview_cell_size);
+        $('.editor_cell').css('width', editor.config.editor_cell_size * editor.config.pixel_width)
+            .css('height', editor.config.editor_cell_size);
+    },
+
+    // *************************************************************************************************
+    // ******************************************************************************* MASKS
+    // *************************************************************************************************
 
     maskAll: function () {
-        for (x = 0; x < editor.config.max_width * 4; x++) {
-            for (y = 0; y < editor.config.max_height; y++) {
-                editor.mask[x][y] = 0;
-            }
-        }
-        editor.spriteSave()
-        editor.editorUpdateContent();
-        editor.previewUpdate()
-    },
-    maskClear: function () {
-        for (x = 0; x < editor.config.max_width * 4; x++) {
+        var x, y;
+        for (x = 0; x < editor.config.max_width; x++) {
             for (y = 0; y < editor.config.max_height; y++) {
                 editor.mask[x][y] = 1;
             }
@@ -475,10 +399,22 @@ var editor = {
         editor.editorUpdateContent();
         editor.previewUpdate()
     },
+    maskClear: function () {
+        var x, y;
+        for (x = 0; x < editor.config.max_width; x++) {
+            for (y = 0; y < editor.config.max_height; y++) {
+                editor.mask[x][y] = 0;
+            }
+        }
+        editor.spriteSave()
+        editor.editorUpdateContent();
+        editor.previewUpdate()
+    },
     maskAuto: function () {
-        for (x = 0; x < editor.config.width * 4; x++) {
+        var x, y;
+        for (x = 0; x < editor.config.width; x++) {
             for (y = 0; y < editor.config.height; y++) {
-                editor.mask[x][y] = editor.sprite[x][y] > 0 ? 0 : 1;
+                editor.mask[x][y] = editor.sprite[x][y] > 0 ? 1 : 0;
             }
         }
         editor.spriteSave()
@@ -486,9 +422,10 @@ var editor = {
         editor.previewUpdate()
     },
     maskOutline: function () {
-        for (x = 0; x < editor.config.width * 4; x++) {
+        var x, y;
+        for (x = 0; x < editor.config.width; x++) {
             for (y = 0; y < editor.config.height; y++) {
-                editor.mask[x][y] = editor.cellHasNeighbour(x, y) ? 0 : 1;
+                editor.mask[x][y] = editor.cellHasNeighbour(x, y) ? 1 : 0;
             }
         }
         editor.spriteSave()
@@ -502,6 +439,9 @@ var editor = {
         editor.mask_selected = 1 - editor.mask[x][y];
     },
 
+    // *************************************************************************************************
+    // ******************************************************************************* EXPORT IMPORT
+    // *************************************************************************************************
 
     dataShow: function () {
         editor.dataShowRaw();
@@ -510,7 +450,6 @@ var editor = {
 
     dataShowRaw() {
         var rawdata = 'Nothing to export';
-        //var jsondata = '';
         var objdata = {};
         var empty = true;
 
@@ -529,7 +468,10 @@ var editor = {
             empty = false;
         };
         if (editor.config.raw_options) {
-            objdata.o = editor.config;
+            objdata.o = {};
+            editor.config.config_exportables.forEach(function (elem, idx) {
+                objdata.o[elem] = editor.config[elem];
+            });
             empty = false;
         };
         if (!empty) {
@@ -551,15 +493,16 @@ var editor = {
                 return false;
             }
             if (confirm("Are You sure?\nAll your current data will be overwritten!")) {
+                editor.spriteClear();
                 if (objdata.s) {
-                    editor.sprite = objdata.s;
+                    editor.sprite = $.extend({}, editor.sprite, objdata.s);
                     editor.config.width = objdata.w;
                     editor.config.height = objdata.h;
                     msg += "Sprite data imported sucessfuly.\n";
                     editor.spriteSave();
                 }
                 if (objdata.m) {
-                    editor.mask = objdata.m;
+                    editor.mask = $.extend({}, editor.mask, objdata.m);
                     msg += "Mask data imported sucessfuly.\n";
                     editor.spriteSave();
                 }
@@ -569,39 +512,118 @@ var editor = {
                     editor.configSave();
                 }
                 if (objdata.o) {
-                    editor.config = objdata.o;
+                    editor.config.config_exportables.forEach(function (elem, idx) {
+                        editor.config[elem] = objdata.o[elem];
+                    });
                     msg += "Options imported sucessfuly.\n";
                     editor.configSave();
                 }
                 $("#data_raw").val(msg);
-                console.log(msg);
                 return true;
             }
         } else {
             alert('Data decompression error!');
             return false;
         };
-
-
     },
 
     dataShowUser() {
         var userdata = editor.config.export_template;
 
         userdata = userdata.replace('##W##', editor.dataParse(editor.config.width, false));
+        userdata = userdata.replace('##BW##', editor.dataParse(editor.config.width / editor.config.export_mode, false));
         userdata = userdata.replace('##H##', editor.dataParse(editor.config.height, false));
         userdata = userdata.replace('##S##', editor.img2str(editor.sprite));
-        userdata = userdata.replace('##M##', editor.img2str(editor.mask));
+        userdata = userdata.replace('##M##', editor.mask2str(editor.mask));
         userdata = userdata.replace('##C##', editor.arr2str(editor.config.colors));
 
         $("#data_user").val(userdata);
     },
 
     img2str: function (arr) {
-        var data = '';
-
+        var byte, bitoffset,
+            data = '',
+            x = 0,
+            y = 0;
+        while (y < editor.config.height) {
+            x = 0;
+            while (x < editor.config.width) {
+                byte = 0;
+                bitoffset = 8 / editor.config.export_mode;
+                switch (Number(editor.config.export_mode)) {
+                case 1:
+                    byte = arr[x][y];
+                    break;
+                case 2:
+                    byte = (15 & arr[x][y]) << bitoffset;
+                    byte |= 15 & arr[x + 1][y];
+                    break;
+                case 4:
+                    byte = arr[x][y] << (bitoffset * 3);
+                    byte |= (3 & arr[x + 1][y]) << (bitoffset * 2);
+                    byte |= (3 & arr[x + 2][y]) << bitoffset;
+                    byte |= 3 & arr[x + 3][y];
+                    break;
+                case 8:
+                    for (var bit = 0; bit < 8; bit++) {
+                        byte = byte << 1;
+                        byte |= ((arr[x + bit][y]) != 0) ? 1 : 0;
+                    }
+                    break;
+                }
+                x += Number(editor.config.export_mode);
+                data += editor.dataParse(byte, true);
+            }
+            ++y;
+            if (editor.config.export_CR) data += editor.config.export_row_separator;
+        }
+        data = data.substr(0, data.length - editor.config.export_data_separator.length);
+        if (editor.config.export_CR) data = data.substr(0, data.length - editor.config.export_row_separator.length);
         return data;
     },
+
+    mask2str: function (arr) {
+        var byte, bitoffset,
+            data = '',
+            x = 0,
+            y = 0;
+        while (y < editor.config.height) {
+            x = 0;
+            while (x < editor.config.width) {
+                byte = 0;
+                bitoffset = 8 / editor.config.export_mode;
+                switch (Number(editor.config.export_mode)) {
+                case 1:
+                    byte = arr[x][y] != 0 ? 255 : 0;
+                    break;
+                case 2:
+                    byte = (arr[x][y] != 0) ? (15 << bitoffset) : 0;
+                    byte |= (arr[x + 1][y] != 0) ? 15 : 0;
+                    break;
+                case 4:
+                    byte = (arr[x][y] != 0) ? 3 << (bitoffset * 3) : 0;
+                    byte |= (arr[x + 1][y] != 0) ? 3 << (bitoffset * 2) : 0;
+                    byte |= (arr[x + 2][y] != 0) ? 3 << bitoffset : 0;
+                    byte |= (arr[x + 3][y] != 0) ? 3 : 0;
+                    break;
+                case 8:
+                    for (var bit = 0; bit < 8; bit++) {
+                        byte = byte << 1;
+                        byte |= ((arr[x + bit][y]) != 0) ? 1 : 0;
+                    }
+                    break;
+                }
+                x += Number(editor.config.export_mode);
+                data += editor.dataParse(byte, true);
+            }
+            ++y;
+            if (editor.config.export_CR) data += editor.config.export_row_separator;
+        }
+        data = data.substr(0, data.length - editor.config.export_data_separator.length);
+        if (editor.config.export_CR) data = data.substr(0, data.length - editor.config.export_row_separator.length);
+        return data;
+    },
+
     arr2str: function (arr) {
         var data = '';
         arr.forEach(function (elem, idx) {

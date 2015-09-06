@@ -9,12 +9,12 @@ editor.spriteFx = {
                 cs = editor.sprite[0][y];
                 cm = editor.mask[0][y];
             };
-            for (x = 0; x < (editor.config.width * 4) - 1; x++) {
+            for (x = 0; x < (editor.config.width) - 1; x++) {
                 editor.sprite[x][y] = editor.sprite[x + 1][y];
                 editor.mask[x][y] = editor.mask[x + 1][y];
             }
-            editor.sprite[(editor.config.width * 4) - 1][y] = cs;
-            editor.mask[(editor.config.width * 4) - 1][y] = cm;
+            editor.sprite[(editor.config.width) - 1][y] = cs;
+            editor.mask[(editor.config.width) - 1][y] = cm;
         }
         editor.editorUpdateContent();
         editor.previewUpdate();
@@ -27,10 +27,10 @@ editor.spriteFx = {
             cs = 0;
             cm = 0;
             if (editor.config.wrap) {
-                cs = editor.sprite[(editor.config.width * 4) - 1][y];
-                cm = editor.mask[(editor.config.width * 4) - 1][y];
+                cs = editor.sprite[(editor.config.width) - 1][y];
+                cm = editor.mask[(editor.config.width) - 1][y];
             };
-            for (x = (editor.config.width * 4)-1; x > 0; x--) {
+            for (x = (editor.config.width)-1; x > 0; x--) {
                 editor.sprite[x][y] = editor.sprite[x - 1][y];
                 editor.mask[x][y] = editor.mask[x - 1][y];
             }
@@ -45,7 +45,7 @@ editor.spriteFx = {
 
     shu: function () {
         var x, y, cs, cm;
-        for (x = 0; x < editor.config.width * 4; x++) {
+        for (x = 0; x < editor.config.width; x++) {
             cs = 0;
             cm = 0;
             if (editor.config.wrap) {
@@ -66,7 +66,7 @@ editor.spriteFx = {
 
     shd: function () {
         var x, y, cs, cm;
-        for (x = 0; x < editor.config.width * 4; x++) {
+        for (x = 0; x < editor.config.width; x++) {
             cs = 0;
             cm = 0;
             if (editor.config.wrap) {
@@ -88,7 +88,7 @@ editor.spriteFx = {
 
     flipV: function () {
         var x, y, cs, cm;
-        for (x = 0; x < editor.config.width * 4; x++) {
+        for (x = 0; x < editor.config.width; x++) {
             for (y = 0; y < Math.floor(editor.config.height / 2); y++) {
                 swap = editor.config.height - y -1;
                 cs = editor.sprite[x][y];
@@ -107,8 +107,8 @@ editor.spriteFx = {
     flipH: function () {
         var x, y, cs, cm;
         for (y = 0; y < editor.config.height; y++) {
-            for (x = 0; x < editor.config.width * 2; x++) {
-                swap = (editor.config.width*4) - x - 1;
+            for (x = 0; x < editor.config.width /2; x++) {
+                swap = (editor.config.width) - x - 1;
                 cs = editor.sprite[x][y];
                 cm = editor.mask[x][y];
                 editor.sprite[x][y] = editor.sprite[swap][y];

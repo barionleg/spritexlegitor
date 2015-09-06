@@ -8,7 +8,8 @@ body {
     font-family: "Roboto", Arial, sans-serif;
     margin: 10px 10px;
     background-color: #689;
-    font-size: 12px
+    font-size: 12px;
+    min-width: 92   0px;
 }
 
 .noselect {
@@ -55,7 +56,7 @@ body {
 }
 
 #menubar button {
-    margin-right: 3px;
+    margin-right: 1px;
 }
 
 button {
@@ -82,7 +83,7 @@ button:hover {
 }
 
 .right_sep {
-    margin-right: 30px!important;
+    margin-right: 13px!important;
 }
 
 .right {
@@ -235,6 +236,11 @@ button:hover {
     margin-top: -2px;
 }
 
+.aslogo {
+    float: right;
+    margin-top: -7px;
+}
+
 .close_button {
     float:right;
     cursor: pointer;
@@ -363,11 +369,11 @@ label {
     display: none;
 }
 
-.mask_0 {
+.mask_1 {
     opacity: 1;
 }
 
-.mask_1 {
+.mask_0 {
     opacity: 0.5;
 }
 
