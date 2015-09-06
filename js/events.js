@@ -82,16 +82,63 @@ editor.bindEvents = function () {
 
     document.addEventListener('keydown', function (event) {
         switch (event.keyCode) {
-        case 49:
+        case 17: // ctrl
+            editor.ctrl_down = true;
+            break;
+        case 49: // 1-3
         case 50:
         case 51:
             editor.colorPick(event.keyCode - 48);
             break;
-        case 52:
+        case 192: // `~
+             $("#palette").slideToggle();
+            break;
+        case 52: // 4
             editor.colorPick(0);
             break;
+        case 77: // m
+            editor.config.mask_mode = !editor.config.mask_mode;
+            $("#menu_mask").toggleClass('invisible', !editor.config.mask_mode);
+            editor.configSave();
+            editor.previewUpdate();
+            editor.editorUpdateContent();
+            break;
+        case 87: //  w
+            editor.config.wrap = !editor.config.wrap;
+            editor.configShow("menu_fx");
+            editor.configSave();
+            break;
+        case 37: // ctrl left
+            if (editor.ctrl_down) {
+                editor.spriteFx.shl();
+            }
+            break;
+        case 39: // ctrl right
+            if (editor.ctrl_down) {
+                editor.spriteFx.shr();
+            }
+            break;
+        case 38: // ctrl up
+            if (editor.ctrl_down) {
+                editor.spriteFx.shu();
+            }
+            break;
+        case 40: // ctrl left
+            if (editor.ctrl_down) {
+                editor.spriteFx.shd();
+            }
+            break;
         default:
-            //alert(event.keyCode);
+            console.log(event.keyCode);
+        }
+    });
+    document.addEventListener('keyup', function (event) {
+        switch (event.keyCode) {
+        case 17:
+            editor.ctrl_down = false;
+            break;
+        default:
+
         }
     });
 };

@@ -126,6 +126,57 @@
         <button class='btn_win close_button'>Close</button>
     </div>
 
+    <!-- ***************************** HELP ******************************** -->
+
+    <div id='mod_help' class='popup'>
+        <div class='close_x close_button'>x</div>
+        <div class='popup_title'>Help</div>
+        <hr>
+        <h3>Keyboard Shortcuts</h3>
+        <table>
+            <tr>
+                <th class='key_name'>Key</th>
+                <th>Action</th>
+            </tr>
+            <tr>
+                <td>1 - 4</td>
+                <td>Pick color</td>
+            </tr>
+            <tr>
+                <td>`</td>
+                <td>Pallete toggle</td>
+            </tr>
+            <tr>
+                <td>m</td>
+                <td>Mask mode toggle</td>
+            </tr>
+            <tr>
+                <td>w</td>
+                <td>Wrap mode toggle</td>
+            </tr>
+            <tr>
+                <td>ctrl + &larr;</td>
+                <td>Shift image left</td>
+            </tr>
+            <tr>
+                <td>ctrl + &rarr;</td>
+                <td>Shift image right</td>
+            </tr>
+            <tr>
+                <td>ctrl + &uarr;</td>
+                <td>Shift image up</td>
+            </tr>
+            <tr>
+                <td>ctrl + &darr;</td>
+                <td>Shift image down</td>
+            </tr>
+
+        </table>
+
+        <br clear='all'>
+        <button class='btn_win close_button'>Close</button>
+    </div>
+
     <!-- ***************************** OPTIONS ******************************** -->
 
     <div id='mod_options' class='popup'>
@@ -186,17 +237,17 @@
         <label>
             Data Separator:
             <input class='opt_select' id='opt_export_data_separator' value='' type='text'>
-        <label>
-            Data Prefix:
-            <input class='opt_select' id='opt_export_data_prefix' value='' type='text'>
-        </label>
+            <label>
+                Data Prefix:
+                <input class='opt_select' id='opt_export_data_prefix' value='' type='text'>
+            </label>
 
-        <label>
-            <input type='checkbox' class='opt_check' id='opt_export_CR'>Split rows to lines</label>
-        <br clear='all'>
-        <button class='btn_win' id='btn_opt_ok'>OK</button>
-        <button class='btn_win close_button'>Cancel</button>
-        <button class='btn_win' id='btn_opt_reset'>Reset to defaults</button>
+            <label>
+                <input type='checkbox' class='opt_check' id='opt_export_CR'>Split rows to lines</label>
+            <br clear='all'>
+            <button class='btn_win' id='btn_opt_ok'>OK</button>
+            <button class='btn_win close_button'>Cancel</button>
+            <button class='btn_win' id='btn_opt_reset'>Reset to defaults</button>
     </div>
 
     <!-- ***************************** EXPORT IMPORT ******************************** -->
@@ -209,15 +260,16 @@
         <textarea id='data_raw' class='data_textarea'></textarea>
         <button class='btn_win' id='btn_data_load'>Import Data</button>
         <div class='inline_opt' id='opt_raw'>
-        RAW Data Export Contents:<br>
-        <label>
-            <input type='checkbox' class='opt_check' id='opt_raw_sprite'>Sprite</label>
-        <label id='export_raw_mask'>
-            <input type='checkbox' class='opt_check' id='opt_raw_mask'>Mask</label>
-        <label>
-            <input type='checkbox' class='opt_check' id='opt_raw_colors'>Colors</label>
-        <label>
-            <input type='checkbox' class='opt_check' id='opt_raw_options'>Options</label>
+            RAW Data Export Contents:
+            <br>
+            <label>
+                <input type='checkbox' class='opt_check' id='opt_raw_sprite'>Sprite</label>
+            <label id='export_raw_mask'>
+                <input type='checkbox' class='opt_check' id='opt_raw_mask'>Mask</label>
+            <label>
+                <input type='checkbox' class='opt_check' id='opt_raw_colors'>Colors</label>
+            <label>
+                <input type='checkbox' class='opt_check' id='opt_raw_options'>Options</label>
         </div>
 
         <hr>

@@ -18,6 +18,10 @@ editor.buttons = {
         $("#mod_about").fadeToggle();
     },
 
+    help: function () {
+        $("#mod_help").fadeToggle();
+    },
+
     data:  function () {
         if (!$("#mod_data").is(":visible")) {
             editor.configShow("opt_raw");

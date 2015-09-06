@@ -207,6 +207,34 @@ button:hover {
     left: -150px;
 }
 
+#mod_help {
+    width: 500px;
+    margin-left: 50%;
+    left: -250px;
+}
+
+#mod_help table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #aaa;
+}
+
+#mod_help td, #mod_help th {
+    font-size: 12px;
+    border: 1px solid #aaa;
+    padding: 3px;
+}
+
+#mod_help th {
+    text-align: left;
+    color: #fff;
+    background-color: #888;
+}
+
+.key_name {
+    width:60px;
+}
+
 #mod_data {
     min-width:450px;
 }

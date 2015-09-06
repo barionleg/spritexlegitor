@@ -3,6 +3,7 @@ var editor = {
     sprite: [],
     mask: [],
     mask_selected: 0,
+    ctrl_down: false,
     runOnce: true,
     init: function () {
         this.configLoad();
@@ -269,10 +270,18 @@ var editor = {
 
     editorUpdateContent: function () {
         var x, y;
-        for (x = 0; x < this.config.max_width; x++) {
-            for (y = 0; y < this.config.max_height; y++) {
-                this.cellSet("#cell_" + x + "_" + y, this.sprite[x][y]);
-                this.cellMask("#cell_" + x + "_" + y, this.mask[x][y]);
+        for (x = -1; x < this.config.max_width; x++) {
+            for (y = -1; y < this.config.max_height; y++) {
+                if (x == -1 && y > -1) {
+                    $("#cell_" + x + "_" + y).html(this.formatInt(y));
+                };
+                if (y == -1 && x > -1) {
+                    $("#cell_" + x + "_" + y).html(this.formatInt(x));
+                };
+                if (x > -1 && y > -1) {
+                    this.cellSet("#cell_" + x + "_" + y, this.sprite[x][y]);
+                    this.cellMask("#cell_" + x + "_" + y, this.mask[x][y]);
+                }
             }
         }
     },
