@@ -4,12 +4,19 @@ var editor = {
     mask: [],
     mask_selected: 0,
     ctrl_down: false,
+    shift_down: false,
+    alt_down: false,
     runOnce: true,
+    cursorX: 0,
+    cursorY: 0,
+    undos: [],
+    redos: [],
     init: function () {
         this.configLoad();
         this.spriteLoad();
 
         if (this.runOnce) {
+            this.spriteSaveUndo();
             this.config.version = default_config.version;
             $("#version").html(this.config.version);
             this.editorDraw();
@@ -205,9 +212,43 @@ var editor = {
             this.mask = $.extend(true, {}, storage.get('mask'));
         }
     },
-    spriteSave: function () {
+    spriteSave: function (withUndo) {
+//        if (withUndo === undefined) withUndo = true;
         storage.set('sprite', this.sprite);
         storage.set('mask', this.mask);
+        editor.spriteSaveUndo();
+    },
+
+    spriteSaveUndo: function () {
+        var undo = {};
+        var undoNum;
+        undo.s = $.extend(true, {}, editor.sprite);
+        undo.m = $.extend(true, {}, editor.mask);
+        undoNum = editor.undos.push(undo);
+        if (undoNum > editor.config.undo_levels+1) editor.undos.shift();
+    },
+
+    spriteReadUndo: function () {
+        if (editor.undos.length > 1) {
+            editor.redos.push(editor.undos.pop());
+            var undo = editor.undos.pop();
+            editor.sprite = undo.s;
+            editor.mask = undo.m;
+            editor.editorUpdateContent();
+            editor.spriteSave();
+            editor.previewUpdate();
+        };
+    },
+
+    spriteReadRedo: function () {
+        if (editor.redos.length > 0) {
+            var undo = editor.redos.pop();
+            editor.sprite = undo.s;
+            editor.mask = undo.m;
+            editor.editorUpdateContent();
+            editor.previewUpdate();
+            editor.spriteSave();
+        };
     },
 
     // *************************************************************************************************
@@ -256,8 +297,12 @@ var editor = {
 
     editorUpdateSize: function () {
         var x, y;
-        $('#editor').css('width', (Number(editor.config.width) + 1) * ((editor.config.editor_cell_size * editor.config.pixel_width) + 1));
-        $('#editor').css('height', (Number(editor.config.height) + 1) * (Number(editor.config.editor_cell_size) + 1));
+        $('#editor').css('width', (Number(editor.config.width) + 2) * ((editor.config.editor_cell_size * editor.config.pixel_width) + 1));
+        $('#editor').css('height', (Number(editor.config.height) + 2) * (Number(editor.config.editor_cell_size) + 1));
+        $('.editor_cell').css('width', editor.config.editor_cell_size * editor.config.pixel_width)
+            .css('height', editor.config.editor_cell_size);
+        $('#cursor').css('width', (editor.config.editor_cell_size * editor.config.pixel_width) - 1)
+            .css('height', editor.config.editor_cell_size - 1);
 
         $('.editor_cell').show().css('font-size', (editor.config.editor_cell_size * 0.8) + "px");
         for (x = this.config.width; x < this.config.max_width; x++) {
@@ -362,7 +407,6 @@ var editor = {
                 $("#preview").append($cell);
             }
         };
-        this.spriteSave();
     },
 
     previewUpdate: function () {
@@ -380,7 +424,6 @@ var editor = {
                 editor.cellMask($cell, this.mask[x][y]);
             }
         };
-        this.spriteSave();
     },
     previewSizeUpdate: function () {
         $('#preview').css('top', editor.config.previewY);
@@ -389,8 +432,6 @@ var editor = {
         $('#preview').css('height', Number(editor.config.height) * editor.config.preview_cell_size);
         $('.preview_cell').css('width', editor.config.preview_cell_size * editor.config.pixel_width)
             .css('height', editor.config.preview_cell_size);
-        $('.editor_cell').css('width', editor.config.editor_cell_size * editor.config.pixel_width)
-            .css('height', editor.config.editor_cell_size);
     },
 
     // *************************************************************************************************
@@ -449,6 +490,31 @@ var editor = {
     },
 
     // *************************************************************************************************
+    // ******************************************************************************* CURSOR
+    // *************************************************************************************************
+
+    cursorSetXY(x, y) {
+        if (x >= 0 && x < editor.config.width) editor.cursorX = x;
+        if (y >= 0 && y < editor.config.height) editor.cursorY = y;
+    },
+
+    cursorSetCell(cell) {
+        var ida = cell.id.split('_');
+        var x = ida[1];
+        var y = ida[2];
+        editor.cursorSetXY(x, y);
+    },
+
+    cursorUpdate() {
+        clearTimeout(editor.cursor_timeout);
+        $("#cursor").show();
+        $("#cursor").detach().prependTo("#cell_" + editor.cursorX + "_" + editor.cursorY);
+        editor.cursor_timeout = setTimeout(function () {
+            $("#cursor").fadeOut(1000);
+        }, 3000);
+    },
+
+    // *************************************************************************************************
     // ******************************************************************************* EXPORT IMPORT
     // *************************************************************************************************
 
@@ -493,6 +559,8 @@ var editor = {
         var LZdata = $("#data_raw").val();
         var jsondata = LZString.decompressFromEncodedURIComponent(LZdata);
         var objdata;
+        var data_updated=false,
+            conf_updated=false;
         var msg = '';
         if (jsondata !== null && typeof jsondata === 'string') {
             try {
@@ -508,25 +576,27 @@ var editor = {
                     editor.config.width = objdata.w;
                     editor.config.height = objdata.h;
                     msg += "Sprite data imported sucessfuly.\n";
-                    editor.spriteSave();
+                    data_updated = true;
                 }
                 if (objdata.m) {
                     editor.mask = $.extend({}, editor.mask, objdata.m);
                     msg += "Mask data imported sucessfuly.\n";
-                    editor.spriteSave();
+                    data_updated = true;
                 }
                 if (objdata.c) {
                     editor.config.colors = objdata.c;
                     msg += "Colour data imported sucessfuly.\n";
-                    editor.configSave();
+                    conf_updated = true;
                 }
                 if (objdata.o) {
                     editor.config.config_exportables.forEach(function (elem, idx) {
                         editor.config[elem] = objdata.o[elem];
                     });
                     msg += "Options imported sucessfuly.\n";
-                    editor.configSave();
+                    conf_updated = true;
                 }
+                if (data_updated) editor.spriteSave();
+                if (conf_updated) editor.configSave();
                 $("#data_raw").val(msg);
                 return true;
             }

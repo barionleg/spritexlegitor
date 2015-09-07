@@ -1,5 +1,5 @@
 var default_config = {
-    version: "0.91 beta",
+    version: "0.99 beta",
     width: 16,
     height: 32,
     max_width: 64,
@@ -26,6 +26,7 @@ var default_config = {
     previewY: 120,
     preview_cell_size: 2,
     editor_cell_size: 10,
+    undo_levels: 25,
     config_exportables : [
     "hex_mode" , "pal_mode", "mask_mode", "mask_vis", "pixel_width"
     ],
