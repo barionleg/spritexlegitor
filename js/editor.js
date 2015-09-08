@@ -11,6 +11,7 @@ var editor = {
     cursorY: 0,
     undos: [],
     redos: [],
+    sizeTimeout: 0,
     init: function () {
         this.configLoad();
         this.spriteLoad();
@@ -19,20 +20,22 @@ var editor = {
             this.spriteSaveUndo();
             this.config.version = default_config.version;
             $("#version").html(this.config.version);
+            $("#size_width").html(this.formatInt(this.config.width));
+            $("#size_height").html(this.formatInt(this.config.height));
             this.editorDraw();
             this.previewDraw();
             this.exportTemplatesLoad();
         }
-
-        this.previewSizeUpdate();
-        this.sizesUpdate();
+        editor.editorUpdateContent();
+        editor.editorUpdateSize();
+        editor.previewUpdate();
+        editor.previewSizeUpdate();
+        editor.colorsUpdate();
         editor.configShow("menu_fx");
         editor.configShow("menu_mask");
         $("#menu_mask").toggleClass('invisible', !this.config.mask_mode);
         $("#export_raw_mask").toggleClass('invisible', !this.config.mask_mode);
         palette.draw('#palette');
-        this.colorsUpdate();
-        editor.editorUpdateContent();
 
         if (this.runOnce) {
             this.bindEvents();
@@ -49,7 +52,7 @@ var editor = {
     },
 
     widthDec: function () { // ************** SIZES
-        if (editor.config.width > 1) {
+        if (editor.config.width > editor.config.export_mode) {
             editor.config.width -= Number(editor.config.export_mode);
             editor.sizesUpdate();
         }
@@ -73,15 +76,19 @@ var editor = {
         }
     },
     sizesUpdate: function () {
+        clearTimeout(editor.sizeTimeout)
         if (editor.config.width % editor.config.export_mode != 0) {
             editor.config.width = (Math.floor(editor.config.width / editor.config.export_mode) + 1) * Number(editor.config.export_mode);
         };
         $("#size_width").html(this.formatInt(this.config.width));
         $("#size_height").html(this.formatInt(this.config.height));
-        this.editorUpdateSize();
-        this.previewUpdate();
-        this.previewSizeUpdate();
-        this.configSave();
+        editor.configSave();
+        editor.sizeTimeout = setTimeout(function () {
+            editor.editorUpdateSize();
+            editor.previewUpdate();
+            editor.previewSizeUpdate();
+        }, 500);
+
     },
 
     // *************************************************************************************************
@@ -101,26 +108,28 @@ var editor = {
         this.init();
     },
     configRead: function (cont) {
-        $('#' + cont + ' input:checkbox').each(function (idx, chkbox) {
+        var $cont = $('#' + cont);
+        $cont.find('input:checkbox').each(function (idx, chkbox) {
             configname = chkbox.id.substr(4);
-            editor.config[configname] = $(chkbox).prop('checked');
+            editor.config[configname] = $cont.find(chkbox).prop('checked');
         });
-        $('#' + cont + ' select.opt_select, #' + cont + ' textarea, #' + cont + ' input:text, #' + cont + ' input:hidden')
+        $cont.find('select.opt_select, #' + cont + ' textarea, #' + cont + ' input:text, #' + cont + ' input:hidden')
             .each(function (idx, selname) {
                 configname = selname.id.substr(4);
-                editor.config[configname] = $(selname).val();
+                editor.config[configname] = $cont.find(selname).val();
             });
 
     },
     configShow: function (cont) {
-        $('#' + cont + ' input:checkbox').each(function (idx, chkbox) {
+        var $cont = $('#' + cont);
+        $cont.find('input:checkbox').each(function (idx, chkbox) {
             configname = chkbox.id.substr(4);
-            $(chkbox).prop('checked', editor.config[configname]);
+            $cont.find(chkbox).prop('checked', editor.config[configname]);
         });
-        $('#' + cont + ' select.opt_select, #' + cont + ' textarea, #' + cont + ' input:text, #' + cont + ' input:hidden')
+        $cont.find('select.opt_select, #' + cont + ' textarea, #' + cont + ' input:text, #' + cont + ' input:hidden')
             .each(function (idx, selname) {
                 configname = selname.id.substr(4);
-                $(selname).val(editor.config[configname]);
+                $cont.find(selname).val(editor.config[configname]);
             });
 
     },
@@ -245,7 +254,8 @@ var editor = {
 
     editorDraw: function () {
         var x, y;
-        $("#editor").empty();
+        var $editor = $("#editor");
+        $editor.empty();
         for (y = -1; y < editor.config.max_height; y++) {
             for (x = -1; x < editor.config.max_width; x++) {
                 var $cell = $("<div></div>");
@@ -278,45 +288,61 @@ var editor = {
                         $cell.addClass('mask_' + this.mask[x][y]);
                     }
                 };
-                $("#editor").append($cell);
+                $editor.append($cell);
             }
         };
     },
 
     editorUpdateSize: function () {
         var x, y;
-        $('#editor').css('width', (Number(editor.config.width) + 2) * ((editor.config.editor_cell_size * editor.config.pixel_width) + 1));
-        $('#editor').css('height', (Number(editor.config.height) + 2) * (Number(editor.config.editor_cell_size) + 1));
-        $('.editor_cell').css('width', editor.config.editor_cell_size * editor.config.pixel_width)
-            .css('height', editor.config.editor_cell_size);
+        $('#editor').css('width', (Number(editor.config.width) + 2) * ((editor.config.editor_cell_size * editor.config.pixel_width) + 1))
+            .css('height', (Number(editor.config.height) + 2) * (Number(editor.config.editor_cell_size) + 1));
+
+        jss.set('.editor_cell', {
+            'width': editor.config.editor_cell_size * editor.config.pixel_width,
+            'height': editor.config.editor_cell_size,
+            'font-size': (editor.config.editor_cell_size * 0.8) + "px"
+        });
+
         $('#cursor').css('width', (editor.config.editor_cell_size * editor.config.pixel_width) - 1)
             .css('height', editor.config.editor_cell_size - 1);
 
-        $('.editor_cell').show().css('font-size', (editor.config.editor_cell_size * 0.8) + "px");
-        for (x = this.config.width; x < this.config.max_width; x++) {
-            $(".col_" + x).hide();
-        }
-        for (y = this.config.height; y < this.config.max_height; y++) {
-            $(".row_" + y).hide();
-        }
+        $(".editor_cell").each(function (idx, elem) {
+            var ida = elem.id.split('_');
+            var x = ida[1];
+            var y = ida[2];
+            if (x < editor.config.width && y < editor.config.height) {
+                $(elem).removeClass('invisible');
+            } else {
+                $(elem).addClass('invisible');
+            }
+        });
+
+        /*      for (x = this.config.width; x < this.config.max_width; x++) {
+                  $(".col_" + x).hide();
+              }
+              for (y = this.config.height; y < this.config.max_height; y++) {
+                  $(".row_" + y).hide();
+              } */
     },
 
     editorUpdateContent: function () {
-        var x, y;
-        for (x = -1; x < this.config.max_width; x++) {
-            for (y = -1; y < this.config.max_height; y++) {
-                if (x == -1 && y > -1) {
-                    $("#cell_" + x + "_" + y).html(this.formatInt(y));
-                };
-                if (y == -1 && x > -1) {
-                    $("#cell_" + x + "_" + y).html(this.formatInt(x));
-                };
-                if (x > -1 && y > -1) {
-                    this.cellSet("#cell_" + x + "_" + y, this.sprite[x][y]);
-                    this.cellMask("#cell_" + x + "_" + y, this.mask[x][y]);
-                }
+        var x, y, $cell;
+        $(".editor_cell").each(function (idx, elem) {
+            var ida = elem.id.split('_');
+            var x = ida[1];
+            var y = ida[2];
+            if (x == -1 && y > -1) {
+                $(elem).html(editor.formatInt(y));
+            };
+            if (y == -1 && x > -1) {
+                $(elem).html(editor.formatInt(x));
+            };
+            if (x > -1 && y > -1) {
+                editor.cellSet(elem, editor.sprite[x][y]);
+                editor.cellMask(elem, editor.mask[x][y]);
             }
-        }
+        });
     },
 
     cellSet: function (cname, cnum) {
@@ -398,28 +424,32 @@ var editor = {
     },
 
     previewUpdate: function () {
-        var x, y, col;
-        $(".preview_cell").hide();
-        for (y = 0; y < this.config.height; y++) {
-            for (x = 0; x < this.config.width; x++) {
-                var $cell = $('#prev_' + x + '_' + y);
-                col = 'empty';
-                if ((x < this.config.width) && y < this.config.height) {
-                    col = this.sprite[x][y];
-                    $cell.show();
-                }
-                editor.cellSet($cell, col);
-                editor.cellMask($cell, this.mask[x][y]);
+        var x, y, $cell;
+        $(".preview_cell").each(function (idx, elem) {
+            var ida = elem.id.split('_');
+            var x = ida[1];
+            var y = ida[2];
+            if (x < editor.config.width && y < editor.config.height) {
+                editor.cellSet(elem, editor.sprite[x][y]);
+                editor.cellMask(elem, editor.mask[x][y]);
+                $(elem).removeClass('invisible');
+            } else {
+                $(elem).addClass('invisible');
             }
-        };
+
+        });
     },
+
     previewSizeUpdate: function () {
         $('#preview').css('top', editor.config.previewY);
         $('#preview').css('left', editor.config.previewX);
         $('#preview').css('width', Number(editor.config.width) * editor.config.preview_cell_size * editor.config.pixel_width);
         $('#preview').css('height', Number(editor.config.height) * editor.config.preview_cell_size);
-        $('.preview_cell').css('width', editor.config.preview_cell_size * editor.config.pixel_width)
-            .css('height', editor.config.preview_cell_size);
+
+        jss.set('.preview_cell', {
+            'width': editor.config.preview_cell_size * editor.config.pixel_width,
+            'height': editor.config.preview_cell_size
+        });
     },
 
     // *************************************************************************************************

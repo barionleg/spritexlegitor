@@ -1,11 +1,12 @@
 editor.bindEvents = function () {
-    $('.usercolor').bind('click', editor.pickerClick);
-    $('.usercolor').bind('dblclick', editor.paletteShow);
-    $('.usercolor').bind('contextmenu', function (e) {
-        e.preventDefault();
-        editor.colorPick(this.id.substr(-1));
-        $("#palette").slideToggle();
-    });
+    $("#usercolors").find('.usercolor')
+        .bind('click', editor.pickerClick)
+        .bind('dblclick', editor.paletteShow)
+        .bind('contextmenu', function (e) {
+            e.preventDefault();
+            editor.colorPick(this.id.substr(-1));
+            $("#palette").slideToggle();
+        });
 
     editor.buttons.bind();
 
@@ -20,8 +21,8 @@ editor.bindEvents = function () {
         editor.init();
 
     });
-    $("#export_template_list").on('change',function(){
-       editor.exportTemplateSet($(this).val());
+    $("#export_template_list").on('change', function () {
+        editor.exportTemplateSet($(this).val());
     });
 
     $(".close_button").bind('click', function () {
@@ -34,7 +35,7 @@ editor.bindEvents = function () {
         editor.dataShowRaw();
     });
 
-    $(".data_textarea").focus(function () {
+    $("#mod_data").find(".data_textarea").focus(function () {
         var $this = $(this);
         $this.select();
 
@@ -44,7 +45,7 @@ editor.bindEvents = function () {
         });
     });
 
-    $(".inner_cell").bind('mouseover', function () {
+    $("#editor").find(".inner_cell").bind('mouseover', function () {
             if (mouseDown == 1 && !$("#preview").hasClass('is-dragging')) {
                 editor.cellPaint(this.id, editor.config.selected_color)
             }
