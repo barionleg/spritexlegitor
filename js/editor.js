@@ -21,6 +21,7 @@ var editor = {
             $("#version").html(this.config.version);
             this.editorDraw();
             this.previewDraw();
+            this.exportTemplatesLoad();
         }
 
         this.previewSizeUpdate();
@@ -104,18 +105,11 @@ var editor = {
             configname = chkbox.id.substr(4);
             editor.config[configname] = $(chkbox).prop('checked');
         });
-        $('#' + cont + ' select').each(function (idx, selname) {
-            configname = selname.id.substr(4);
-            editor.config[configname] = $(selname).val();
-        });
-        $('#' + cont + ' textarea').each(function (idx, selname) {
-            configname = selname.id.substr(4);
-            editor.config[configname] = $(selname).val();
-        });
-        $('#' + cont + ' input:text').each(function (idx, selname) {
-            configname = selname.id.substr(4);
-            editor.config[configname] = $(selname).val();
-        });
+        $('#' + cont + ' select.opt_select, #' + cont + ' textarea, #' + cont + ' input:text, #' + cont + ' input:hidden')
+            .each(function (idx, selname) {
+                configname = selname.id.substr(4);
+                editor.config[configname] = $(selname).val();
+            });
 
     },
     configShow: function (cont) {
@@ -123,18 +117,12 @@ var editor = {
             configname = chkbox.id.substr(4);
             $(chkbox).prop('checked', editor.config[configname]);
         });
-        $('#' + cont + ' select').each(function (idx, selname) {
-            configname = selname.id.substr(4);
-            $(selname).val(editor.config[configname]);
-        });
-        $('#' + cont + ' textarea').each(function (idx, selname) {
-            configname = selname.id.substr(4);
-            $(selname).val(editor.config[configname]);
-        });
-        $('#' + cont + ' input:text').each(function (idx, selname) {
-            configname = selname.id.substr(4);
-            $(selname).val(editor.config[configname]);
-        });
+        $('#' + cont + ' select.opt_select, #' + cont + ' textarea, #' + cont + ' input:text, #' + cont + ' input:hidden')
+            .each(function (idx, selname) {
+                configname = selname.id.substr(4);
+                $(selname).val(editor.config[configname]);
+            });
+
     },
 
     // *************************************************************************************************
@@ -213,7 +201,7 @@ var editor = {
         }
     },
     spriteSave: function (withUndo) {
-//        if (withUndo === undefined) withUndo = true;
+        //        if (withUndo === undefined) withUndo = true;
         storage.set('sprite', this.sprite);
         storage.set('mask', this.mask);
         editor.spriteSaveUndo();
@@ -225,7 +213,7 @@ var editor = {
         undo.s = $.extend(true, {}, editor.sprite);
         undo.m = $.extend(true, {}, editor.mask);
         undoNum = editor.undos.push(undo);
-        if (undoNum > editor.config.undo_levels+1) editor.undos.shift();
+        if (undoNum > editor.config.undo_levels + 1) editor.undos.shift();
     },
 
     spriteReadUndo: function () {
@@ -559,8 +547,8 @@ var editor = {
         var LZdata = $("#data_raw").val();
         var jsondata = LZString.decompressFromEncodedURIComponent(LZdata);
         var objdata;
-        var data_updated=false,
-            conf_updated=false;
+        var data_updated = false,
+            conf_updated = false;
         var msg = '';
         if (jsondata !== null && typeof jsondata === 'string') {
             try {
@@ -609,12 +597,16 @@ var editor = {
     dataShowUser() {
         var userdata = editor.config.export_template;
 
-        userdata = userdata.replace('##W##', editor.dataParse(editor.config.width, false));
-        userdata = userdata.replace('##BW##', editor.dataParse(editor.config.width / editor.config.export_mode, false));
-        userdata = userdata.replace('##H##', editor.dataParse(editor.config.height, false));
-        userdata = userdata.replace('##S##', editor.img2str(editor.sprite));
-        userdata = userdata.replace('##M##', editor.mask2str(editor.mask));
-        userdata = userdata.replace('##C##', editor.arr2str(editor.config.colors));
+        userdata = userdata.replace(/##W##/g, editor.dataParse(editor.config.width, false));
+        userdata = userdata.replace(/##BW##/g, editor.dataParse(editor.config.width / editor.config.export_mode, false));
+        userdata = userdata.replace(/##L##/g, editor.dataParse(editor.config.width * editor.config.height, false));
+        userdata = userdata.replace(/##BL##/g, editor.dataParse((editor.config.width / editor.config.export_mode) * editor.config.height, false));
+        userdata = userdata.replace(/##H##/g, editor.dataParse(editor.config.height, false));
+        userdata = userdata.replace(/##S##/g, editor.img2str(editor.sprite));
+        userdata = userdata.replace(/##M##/g, editor.mask2str(editor.mask));
+        userdata = userdata.replace(/##C##/g, editor.arr2str(editor.config.colors));
+        userdata = userdata.replace("above this window", "in options");
+
 
         $("#data_user").val(userdata);
     },
@@ -713,6 +705,22 @@ var editor = {
     },
     dataParse: function (val, sep) {
         return editor.config.export_data_prefix + editor.formatInt(val) + (sep ? editor.config.export_data_separator : "");
-    }
+    },
 
+    exportTemplatesLoad: function () {
+        for (var key in editor.export_templates) {
+            var $opt = $("<option></option>").attr('value', key).html(key);
+            $("#export_template_list").append($opt);
+        };
+    },
+
+    exportTemplateSet: function (tmp) {
+        if (tmp != -1) {
+            for (var key in editor.export_templates[tmp]) {
+                $("#opt_" + key).val(editor.export_templates[tmp][key]);
+
+            }
+            //editor.configShow("mod_options");
+        }
+    }
 };

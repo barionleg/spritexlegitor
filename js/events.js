@@ -20,6 +20,9 @@ editor.bindEvents = function () {
         editor.init();
 
     });
+    $("#export_template_list").on('change',function(){
+       editor.exportTemplateSet($(this).val());
+    });
 
     $(".close_button").bind('click', function () {
         $(this).parent().fadeOut()

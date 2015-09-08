@@ -14,7 +14,7 @@ body {
     margin: 10px 10px;
     background-color: #689;
     font-size: 12px;
-    min-width: 92   0px;
+    min-width: 920px;
 }
 
 .noselect {
@@ -360,7 +360,7 @@ div.close_button {
     margin-bottom: 1px;
 }
 
-.opt_select {
+.opt_select, .export_select {
     vertical-align: bottom;
     margin-bottom: 1px;
     margin-left: 5px;
@@ -392,6 +392,9 @@ label {
     border: 1px solid #aaa;
     height: 120px;
     margin-bottom: 8px;
+}
+
+.data_textarea {
     white-space: pre;
 }
 

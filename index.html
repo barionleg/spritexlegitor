@@ -12,6 +12,7 @@
     <script type="text/javascript" src="js/editor.js"></script>
     <script type="text/javascript" src="js/events.js"></script>
     <script type="text/javascript" src="js/config.js"></script>
+    <script type="text/javascript" src="js/export_templates.js"></script>
     <script type="text/javascript" src="js/storage.js"></script>
     <script type="text/javascript" src="js/palette.js"></script>
     <script type="text/javascript" src="js/spritefx.js"></script>
@@ -186,7 +187,48 @@
             </tr>
 
         </table>
+        <br>
+        <hr>
+        <h3>Code Export Template Placeholders</h3>
+        <table>
+            <tr>
+                <th class='key_name'>Placeholder</th>
+                <th>Value</th>
+            </tr>
+            <tr>
+                <td>##H##</td>
+                <td>Sprite/Mask height (in pixels)</td>
+            </tr>
+            <tr>
+                <td>##W##</td>
+                <td>Sprite/Mask width (in pixels)</td>
+            </tr>
+            <tr>
+                <td>##BW##</td>
+                <td>Sprite/Mask width (in bytes)</td>
+            </tr>
+            <tr>
+                <td>##L##</td>
+                <td>Sprite/Mask data size (in pixels)</td>
+            </tr>
+            <tr>
+                <td>##BL##</td>
+                <td>Sprite/Mask data size (in bytes)</td>
+            </tr>
+            <tr>
+                <td>##S##</td>
+                <td>Sprite data</td>
+            </tr>
+            <tr>
+                <td>##M##</td>
+                <td>Mask data</td>
+            </tr>
+            <tr>
+                <td>##C##</td>
+                <td>Color data</td>
+            </tr>
 
+        </table>
         <br clear='all'>
         <button class='btn_win close_button'>Close</button>
     </div>
@@ -210,27 +252,27 @@
             <label>
                 Preview Zoom:
                 <select class='opt_select' id='opt_preview_cell_size'>
-                    <option value=1>x1</option>
-                    <option value=2>x2</option>
-                    <option value=3>x3</option>
-                    <option value=4>x4</option>
-                    <option value=5>x5</option>
+                    <option value='1'>x1</option>
+                    <option value='2'>x2</option>
+                    <option value='3'>x3</option>
+                    <option value='4'>x4</option>
+                    <option value='5'>x5</option>
                 </select>
             </label>
             <label>
                 Pixel Width:
                 <select class='opt_select' id='opt_pixel_width'>
-                    <option value=1>x1</option>
-                    <option value=2>x2</option>
-                    <option value=4>x4</option>
+                    <option value='1'>x1</option>
+                    <option value='2'>x2</option>
+                    <option value='4'>x4</option>
                 </select>
             </label>
             <label>
                 Editor:
                 <select class='opt_select' id='opt_editor_cell_size'>
-                    <option value=6>Small</option>
-                    <option value=10>Normal</option>
-                    <option value=20>Large</option>
+                    <option value='6'>Small</option>
+                    <option value='10'>Normal</option>
+                    <option value='20'>Large</option>
                 </select>
             </label>
         </div>
@@ -240,17 +282,22 @@
         <label>
             Data Export Mode:
             <select class='opt_select' id='opt_export_mode'>
-                <option value=1>1 cell per byte</option>
-                <option value=2>2 cells per byte (GR.9,11)</option>
-                <option value=4>4 cells per byte (GR.3,5,7,15)</option>
-                <option value=8>8 cells per byte (GR.4,6,8,14)</option>
+                <option value='1'>1 cell per byte</option>
+                <option value='2'>2 cells per byte (GR.9,11)</option>
+                <option value='4'>4 cells per byte (GR.3,5,7,15)</option>
+                <option value='8'>8 cells per byte (GR.4,6,8,14)</option>
             </select>
         </label>
-        <label>Code Export Template:</label>
+        <label>Code Export Template:
+            <select class='export_select' id='export_template_list'>
+                <option value='-1' selected='selected'>Some Examples</option>
+            </select>
+        </label>
         <textarea id='opt_export_template' class='opt_textarea'></textarea>
         <label>
             Data Separator:
             <input class='opt_select' id='opt_export_data_separator' value='' type='text'>
+            <input class='opt_select' id='opt_export_row_separator' value='' type='hidden'>
             <label>
                 Data Prefix:
                 <input class='opt_select' id='opt_export_data_prefix' value='' type='text'>
