@@ -113,7 +113,7 @@ var editor = {
             configname = chkbox.id.substr(4);
             editor.config[configname] = $cont.find(chkbox).prop('checked');
         });
-        $cont.find('select.opt_select, #' + cont + ' textarea, #' + cont + ' input:text, #' + cont + ' input:hidden')
+        $cont.find('select.opt_select, textarea, input:text, input:hidden')
             .each(function (idx, selname) {
                 configname = selname.id.substr(4);
                 editor.config[configname] = $cont.find(selname).val();
@@ -126,7 +126,7 @@ var editor = {
             configname = chkbox.id.substr(4);
             $cont.find(chkbox).prop('checked', editor.config[configname]);
         });
-        $cont.find('select.opt_select, #' + cont + ' textarea, #' + cont + ' input:text, #' + cont + ' input:hidden')
+        $cont.find('select.opt_select, textarea, input:text, input:hidden')
             .each(function (idx, selname) {
                 configname = selname.id.substr(4);
                 $cont.find(selname).val(editor.config[configname]);
@@ -318,12 +318,6 @@ var editor = {
             }
         });
 
-        /*      for (x = this.config.width; x < this.config.max_width; x++) {
-                  $(".col_" + x).hide();
-              }
-              for (y = this.config.height; y < this.config.max_height; y++) {
-                  $(".row_" + y).hide();
-              } */
     },
 
     editorUpdateContent: function () {
@@ -747,7 +741,12 @@ var editor = {
     exportTemplateSet: function (tmp) {
         if (tmp != -1) {
             for (var key in editor.export_templates[tmp]) {
-                $("#opt_" + key).val(editor.export_templates[tmp][key]);
+                if ($("#opt_" + key).hasClass('opt_check')) {
+                    $("#opt_" + key).prop('checked',(editor.export_templates[tmp][key]));    
+                } else {
+                    $("#opt_" + key).val(editor.export_templates[tmp][key]);    
+                }
+                
 
             }
             //editor.configShow("mod_options");

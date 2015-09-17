@@ -45,7 +45,8 @@ editor.bindEvents = function () {
         });
     });
 
-    $("#editor").find(".inner_cell").bind('mouseover', function () {
+    $("#editor").find(".inner_cell")
+        .bind('mouseover', function () {
             if (mouseDown == 1 && !$("#preview").hasClass('is-dragging')) {
                 editor.cellPaint(this.id, editor.config.selected_color)
             }
@@ -112,6 +113,7 @@ editor.bindEvents = function () {
         case 77: // m
             editor.config.mask_mode = !editor.config.mask_mode;
             $("#menu_mask").toggleClass('invisible', !editor.config.mask_mode);
+            $("#export_raw_mask").toggleClass('invisible', !editor.config.mask_mode);
             editor.configSave();
             editor.previewUpdate();
             editor.editorUpdateContent();
