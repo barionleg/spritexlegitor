@@ -10,6 +10,9 @@ $(document).ready(function () {
     'use strict';
     editor.init();
 
+    const bh = $('<div/>').attr('id','bathub').on('mousedown',()=>	{window.location.href='https://bocianu.gitlab.io/bathub/'});
+    $('body').append(bh);
+
 });
 
 
